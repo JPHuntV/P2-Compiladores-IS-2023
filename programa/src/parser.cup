@@ -1,0 +1,446 @@
+package src;
+import java_cup.runtime.*;
+
+
+import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
+
+parser code {:
+    //indica si se ha encontrado un error durante el analisis
+    Boolean errores = false;
+
+    //estructuras que almacenaran los simbolos de manera temporal durante
+    //la creacion de las tablas de simbolos
+    ListaElementosTabla listaParametros = new ListaElementosTabla();
+    ListaElementosTabla listaVariables = new ListaElementosTabla();
+
+    //estructura que almacena representaciones de las funciones que se hayan encontrado
+    List<Funcion> functions = new ArrayList<Funcion>();
+
+    //estructura que almacena las tablas de simbolos definidas
+    SymbolTableStack symbolTables = new SymbolTableStack();
+    
+    /*
+    *existeFuncion
+    *E::nombre: nombre de la funcion a comprobar su existencia
+    *S::Valor booleano que indica la existencia de una funcion
+    *R::el nombre de la funcion debe ser un string
+    *O::comprobar si una funcion ya fue definidas
+    */
+    private Boolean existeFuncion(String nombre){
+        for(Funcion funcion : functions){
+            if(funcion.getName() == nombre){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+    *getSymbolTableStack
+    *E::ninguna
+    *S::Tablas de simbolos que han sido creadas
+    *R::ningua
+    *O::Retornar las tablas de simbolos que han sido creadas
+    */
+    public SymbolTableStack getSymbolTableStack() {
+        return symbolTables;
+    }
+
+    
+    /*
+    *getErrores
+    *E::ningua
+    *S::valor booleano que indica la existencia de algun error
+    *R::ninguna
+    *O::indicar si durante el parseo se encontro algun error
+    */
+    public Boolean getErrores(){
+        return errores;
+    }
+
+    //instancia del analizador lexico creado en jflex
+    Analizador s;
+    parser(Analizador s){ this.s=s; }
+:}
+
+scan with {: return s.next_token(); :};
+
+/*---------------------------declaraciones------------------------*/
+
+terminal REXC, OR, AND, MULT, LPAREN , RPAREN, MENOS, MAS, ASIG, LBRACKET, RBRACKET, LBRACE, RBRACE, 
+    COMA, MENOR, MAYOR, DIV, MENORIGUAL, MAYORIGUAL, EQUAL, NOTEQUAL, POTENCIA, MODULO, INCREMENTO, 
+    DECREMENTO, NOT, IF, ELIF, ELSE, WHILE, DO, FOR, RETURN, BREAK, LEER, ESCRIBIR, uminus;
+
+terminal String LITERAL_INT, LITERAL_FLOAT, LITERAL_BOOL, LITERAL_CHAR, LITERAL_STRING;
+terminal String IDENTIFIER, DOLLAR, INT, FLOAT, STRING, CHAR, ARRAY, BOOL,MAIN;
+
+non terminal  inicio, programa, main, funciones,expresion, opRelacional, operadorArit, 
+    operadorUnario, operadorLogico, expresionAritmetica, expresionRelacional, expresionLogica, 
+    expresionRelLog, terminoLogico, operandoArit, operandoRel, array, if, elif, while, doWhile, 
+    for, estructuraControl, return, break, argumentos, llamaFuncion, asignacion, sentencia, bloque, 
+    parametros, declaraFuncion,tipo, declaraArray, declaraArrayAux, declaraVar, getValorArray, 
+    setValorArray, lectura, numerico, escritura, literales, argumento,  else, bloqueFunc;
+
+
+//declaraciones de precedencia
+precedence left MAS, MENOS;
+precedence left MULT, DIV;
+precedence right uminus;
+precedence left  POTENCIA, MODULO;
+precedence left AND, OR;
+precedence nonassoc NOT, REXC;
+precedence left DOLLAR;
+precedence left CHAR, INT;
+precedence left IDENTIFIER;
+precedence left LPAREN,LBRACKET;
+
+//punto de entrada al analisis
+start with inicio;
+
+inicio ::= programa:e {:System.out.println("El programa ha sido parseado de manera exitosa"); RESULT = e; :};
+
+
+programa ::= main
+    | funciones main
+    | main funciones
+    | funciones main funciones
+    ;
+
+
+main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque RBRACE
+    {: 
+        Boolean existe = false;
+        for (Funcion f : functions) {
+            if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t )){
+                System.out.println("La funcion "+ (String) t +"  " + e + " ya fue declarada");
+                errores = true;
+                existe = true;
+            }
+        }
+        if(existe == false){
+            Funcion newFuncion = new Funcion(e, listaParametros.getParams(), (String) t);
+            functions.add(newFuncion);
+
+            SymbolTable symbolTable = new SymbolTable(e,(String) t);
+
+            for (ElementoTabla param : listaParametros.getParams()) {
+                symbolTable.addSymbol(param.getName(), param.getType());
+            }
+            for (ElementoTabla par : listaVariables.getParams()) {
+                if (symbolTable.containsSymbol( par.getName())) {
+                    System.out.println("El simbolo " +  par.getName() + " ya fue declarado en esta función");
+                    errores = true;
+                }else{
+                    symbolTable.addSymbol(par.getName(), par.getType());
+                }
+            }
+             getSymbolTableStack().push(symbolTable);  
+        }
+        listaVariables  = new ListaElementosTabla();
+        listaParametros  = new ListaElementosTabla();
+    :};
+
+funciones ::= funciones declaraFuncion
+    | declaraFuncion
+    ;
+
+
+expresion ::= expresionRelLog
+    |expresionAritmetica
+    ;
+
+
+operadorArit::= MAS
+    | MENOS
+    | MULT 
+    | POTENCIA 
+    | DIV 
+    | MODULO
+    ;
+
+
+opRelacional ::= MENOR
+    | MENORIGUAL
+    | MAYOR
+    | MAYORIGUAL
+    | EQUAL 
+    | NOTEQUAL 
+    ;
+
+
+operadorUnario ::= MENOS numerico  %prec uminus
+    | INCREMENTO IDENTIFIER 
+    | DECREMENTO IDENTIFIER
+    ;
+
+
+operadorLogico ::= AND
+    |OR 
+    |REXC
+    |NOT
+    ;
+
+
+expresionAritmetica ::= operandoArit 
+    | expresionAritmetica operadorArit operandoArit
+    ;
+
+
+expresionRelLog ::= expresionRelacional
+    | expresionLogica
+    ;
+
+
+expresionRelacional ::= operandoRel opRelacional operandoRel ;
+
+
+expresionLogica ::= terminoLogico
+    | expresionLogica operadorLogico terminoLogico
+    ;
+
+
+terminoLogico ::= LITERAL_BOOL
+    | LPAREN expresionRelacional RPAREN
+    ;
+
+
+operandoArit ::= IDENTIFIER
+    | LITERAL_STRING 
+    | LITERAL_INT    
+    | LITERAL_FLOAT  
+    | LITERAL_CHAR   
+    | llamaFuncion   
+    | operadorUnario 
+    | LBRACKET array RBRACKET
+    | getValorArray
+    | LPAREN expresionAritmetica RPAREN
+    ;
+
+
+operandoRel ::= operandoArit 
+    | LITERAL_BOOL
+    ;
+
+
+literales ::= LITERAL_INT
+    |LITERAL_FLOAT
+    |LITERAL_BOOL
+    |LITERAL_STRING
+    |LITERAL_CHAR
+    |LBRACKET array RBRACKET
+    ;
+
+
+array ::= expresion  
+    | array COMA expresion
+    ;
+
+
+if ::= IF LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE 
+    ;
+
+
+elif ::= ELIF LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE
+    | elif ELIF LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE
+    ;
+
+
+else ::= ELSE LBRACE bloque RBRACE;
+
+
+while ::= WHILE LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE 
+    ;
+
+
+doWhile ::= DO LBRACE bloque RBRACE WHILE LPAREN expresionRelLog RPAREN DOLLAR 
+    ;
+
+
+for ::= FOR LPAREN declaraVar DOLLAR expresionRelLog DOLLAR expresion  RPAREN LBRACE bloque RBRACE 
+    ;
+
+
+estructuraControl ::= if
+    |if elif
+    |if elif else
+    |if  else
+    |while
+    |doWhile 
+    |for
+    ;
+
+
+return ::= RETURN expresion
+    |RETURN
+    ;
+
+
+break ::= BREAK;
+
+
+argumento ::= IDENTIFIER
+    | literales
+    ;
+
+
+argumentos ::= argumento
+    | argumentos COMA expresion
+    ;
+
+
+llamaFuncion ::= IDENTIFIER  LPAREN RPAREN
+    | IDENTIFIER LPAREN argumentos RPAREN 
+    | lectura
+    | escritura 
+    ;
+
+
+asignacion ::= IDENTIFIER:e ASIG expresion ;
+
+
+sentencia ::= asignacion DOLLAR 
+    | estructuraControl 
+    | expresion DOLLAR 
+    | declaraArray DOLLAR 
+    | declaraVar DOLLAR
+    | return DOLLAR
+    | break DOLLAR
+    | getValorArray DOLLAR 
+    | setValorArray DOLLAR
+    | error DOLLAR {: System.out.println("##### Se ha encontrado un error de syntaxis, el parseo continuara"); errores = true;:}
+    ;
+
+
+bloque ::= sentencia
+    | bloque sentencia
+    ;
+
+
+parametros ::= tipo:t IDENTIFIER:i {: listaParametros.addParameter(new ElementoTabla(i,(String) t));:}
+    | parametros:p COMA tipo:t IDENTIFIER:i {:listaParametros.addParameter(new ElementoTabla(i,(String) t));:}
+    ;
+
+
+declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros RPAREN LBRACE bloqueFunc RBRACE 
+    {:
+        Boolean existe = false;
+        for (Funcion f : functions) {
+            if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
+                System.out.println("La funcion "+ (String) t +"  " + e + " ya fue declarada");
+                errores = true;
+                existe = true;
+            }
+        }
+        if(existe == false){
+            Funcion newFuncion = new Funcion(e, listaParametros.getParams(), (String) t);
+            functions.add(newFuncion);
+
+            SymbolTable symbolTable = new SymbolTable(e,(String) t);
+
+            for (ElementoTabla param : listaParametros.getParams()) {
+                symbolTable.addSymbol(param.getName(), param.getType());
+            }
+            for (ElementoTabla par : listaVariables.getParams()) {
+                if (symbolTable.containsSymbol( par.getName())) {
+                    System.out.println("Symbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
+                    errores = true;
+                }else{
+                    symbolTable.addSymbol(par.getName(), par.getType());
+                }
+            }
+             getSymbolTableStack().push(symbolTable);
+        }
+        listaVariables  = new ListaElementosTabla();
+        listaParametros  = new ListaElementosTabla();
+       
+    :}
+
+    | tipo:t IDENTIFIER:e LPAREN RPAREN LBRACE bloqueFunc RBRACE
+    {:
+        Boolean existe = false;
+        for (Funcion f : functions) {
+            if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
+                System.out.println("La funcion \""+ (String) t +"  " + e + "\" ya fue declarada previamente");
+                errores = true;
+                existe = true;
+            }
+        }
+        if(existe == false){
+            Funcion newFuncion = new Funcion(e, listaParametros.getParams(), (String) t);
+            functions.add(newFuncion);
+
+            SymbolTable symbolTable = new SymbolTable(e,(String) t);
+
+            for (ElementoTabla param : listaParametros.getParams()) {
+                symbolTable.addSymbol(param.getName(), param.getType());
+            }
+            for (ElementoTabla par : listaVariables.getParams()) {
+                if (symbolTable.containsSymbol( par.getName())) {
+                    System.out.println("Symbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
+                    errores = true;
+                }else{
+                    symbolTable.addSymbol(par.getName(), par.getType());
+                }
+            }
+             getSymbolTableStack().push(symbolTable);
+        }
+        listaVariables  = new ListaElementosTabla();
+        listaParametros  = new ListaElementosTabla();
+       
+    :};
+
+
+bloqueFunc ::= bloque;
+
+
+tipo ::= INT:e {:RESULT = e;:}
+    | CHAR:e {: RESULT = e;:}
+    |FLOAT:e {:  RESULT = e;:}
+    |STRING:e {: RESULT = e;:}
+    |ARRAY:e {:  RESULT = e;:}
+    |BOOL:e {: RESULT = e; :}
+    ;
+
+
+declaraArray ::=  INT IDENTIFIER LBRACKET LITERAL_INT RBRACKET DOLLAR
+    |   CHAR IDENTIFIER LBRACKET LITERAL_INT RBRACKET DOLLAR
+    ;
+
+
+declaraArrayAux ::= LBRACKET LITERAL_INT RBRACKET
+    ;
+
+
+declaraVar ::= INT:t IDENTIFIER:i ASIG expresion {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}  
+    | CHAR:t IDENTIFIER:i  ASIG expresion {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}
+    | tipo:t IDENTIFIER:i declaraArrayAux ASIG expresion{:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}
+    | tipo:t IDENTIFIER:i ASIG expresion {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}
+    ;
+
+
+getValorArray ::= IDENTIFIER declaraArrayAux 
+    ;
+
+
+setValorArray ::= getValorArray ASIG expresion   ;
+
+
+lectura ::= LEER LPAREN numerico RPAREN ;
+
+
+numerico ::= LITERAL_INT | LITERAL_FLOAT  ;
+
+
+escritura ::= ESCRIBIR LPAREN expresion RPAREN ; 
+
+
