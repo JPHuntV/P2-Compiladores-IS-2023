@@ -80,7 +80,7 @@ non terminal  inicio, programa, main, funciones,expresion, opRelacional, operado
     operadorUnario, operadorLogico, expresionAritmetica, expresionRelacional, expresionLogica, 
     expresionRelLog, terminoLogico, operandoArit, operandoRel, array, if, elif, while, doWhile, 
     for, estructuraControl, return, break, argumentos, llamaFuncion, asignacion, sentencia, bloque, 
-    parametros, declaraFuncion,tipo, declaraArray, declaraArrayAux, declaraVar, getValorArray, 
+    parametros, declaraFuncion,tipo, declaraArray, declaraArrayAux, declaraVar, declaraVarNoAsig, getValorArray, 
     setValorArray, lectura, numerico, escritura, literales, argumento,  else, bloqueFunc;
 
 
@@ -95,6 +95,8 @@ precedence left DOLLAR;
 precedence left CHAR, INT;
 precedence left IDENTIFIER;
 precedence left LPAREN,LBRACKET;
+precedence left expresionLogica;
+precedence left expresionRelacional;
 
 //punto de entrada al analisis
 start with inicio;
@@ -179,7 +181,7 @@ operadorUnario ::= MENOS numerico  %prec uminus
 operadorLogico ::= AND
     |OR 
     |REXC
-    |NOT
+    //|NOT
     ;
 
 
@@ -188,8 +190,7 @@ expresionAritmetica ::= operandoArit
     ;
 
 
-expresionRelLog ::= expresionRelacional
-    | expresionLogica
+expresionRelLog ::=expresionLogica
     ;
 
 
@@ -203,6 +204,8 @@ expresionLogica ::= terminoLogico
 
 terminoLogico ::= LITERAL_BOOL
     | LPAREN expresionRelacional RPAREN
+    | expresionRelacional
+    | NOT terminoLogico
     ;
 
 
@@ -305,6 +308,7 @@ sentencia ::= asignacion DOLLAR
     | expresion DOLLAR 
     | declaraArray DOLLAR 
     | declaraVar DOLLAR
+    | declaraVarNoAsig DOLLAR
     | return DOLLAR
     | break DOLLAR
     | getValorArray DOLLAR 
@@ -404,14 +408,27 @@ tipo ::= INT:e {:RESULT = e;:}
     ;
 
 
-declaraArray ::=  INT IDENTIFIER LBRACKET LITERAL_INT RBRACKET DOLLAR
-    |   CHAR IDENTIFIER LBRACKET LITERAL_INT RBRACKET DOLLAR
+declaraArray ::=  INT IDENTIFIER LBRACKET LITERAL_INT RBRACKET
+    |   CHAR IDENTIFIER LBRACKET LITERAL_INT RBRACKET
     ;
 
 
 declaraArrayAux ::= LBRACKET LITERAL_INT RBRACKET
     ;
 
+declaraVarNoAsig ::= INT:t IDENTIFIER:i {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}  
+    | CHAR:t IDENTIFIER:i {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}
+    | tipo:t IDENTIFIER:i declaraArrayAux {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}
+    | tipo:t IDENTIFIER:i  {:
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        :}
+    ;
 
 declaraVar ::= INT:t IDENTIFIER:i ASIG expresion {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));

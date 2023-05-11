@@ -1,14 +1,16 @@
 
 
 Tabla: main  Tipo de retorno: int
+	valor: miChar    tipo: char
+	valor: str1    tipo: string
+	valor: bl1    tipo: bool
+	valor: bl0    tipo: bool
+	valor: fl1    tipo: float
+	valor: in1    tipo: int
+	valor: fl2    tipo: float
 
 
-Tabla: miFunc  Tipo de retorno: float
-	valor: dif    tipo: int
-	valor: otra    tipo: char
-	valor: str    tipo: string
-	valor: i    tipo: int
-	valor: otra2    tipo: int
-
-
-Tabla: miOtraFun  Tipo de retorno: bool
+Tabla: miOtraFun  Tipo de retorno: float
+	valor: str2    tipo: string
+	valor: x22    tipo: char
+	valor: ch33    tipo: char

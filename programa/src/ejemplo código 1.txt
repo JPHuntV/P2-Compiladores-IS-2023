@@ -7,8 +7,8 @@ _/
 	float fl1 = 4.4$
 	int in1 = --fl1 * -14 / ++in1 + 7 - 15$
 	float fl2 = 3.7 ** fl1 + (45.6 ~ 76.8)$
-	int arr[10]$$
-	char arr2[3]$$
+	int arr[10]$
+	char arr2[3]$
 
 @comentario 2
 
@@ -17,14 +17,14 @@ _/
 	fl1 = 4.5~miChar**-0.005$
 	miFunc (hola, 'a')$
 	bool bl0 = 6.7 != 8.9$
-	@bool bl1 = in1 >= fl1 # false ^ not(func1(3,miVar) > 56)$
+	bool bl1 = in1 >= fl1 # false ^ not(func1(3,miVar) > 56)$
 	return bl1$
 }
 
 
 float miOtraFun(){
 	char x22 ='2'$
-	if ((x22 <= 45) # (var > 5.6)){
+	if (x22 <= 45 # var > 5.6){
 		x22 = 10$
 		char ch33 = 'a'$
 	}else

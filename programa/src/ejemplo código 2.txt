@@ -7,14 +7,15 @@ int main(){
 }
 
 float miFunc (int dif, char otra){
-	int otra2=1 $
+	int otra2 $
+	char test $
 	string str = "Hola $%&/#$&) mundo"$
 	for(int i=0$i>10$++i)
 	{
 		do
 		{
 			var = var-1$
-		}while((var>12)# ((34+34)>12))$
+		}while(var>12#(34+34)>12)$
 
 		if (var == 0)
 		{
