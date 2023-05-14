@@ -59,7 +59,7 @@ public class App {
             Reader reader = new BufferedReader(new FileReader(archivoFuente));
             Analizador analizador = new Analizador(reader);
             parser miParser = new parser(analizador);
-            miParser.parse();
+            Symbol result = miParser.parse();
             if(miParser.getErrores() == false){
                 SymbolTableStack tableStack = miParser.getSymbolTableStack();
                 if(tableStack.isEmpty()) System.out.println("No hay tablas de simbolos");
@@ -76,13 +76,14 @@ public class App {
                         }
                     }
                 }
+                System.out.println("Parse tree: " + result.value.toString());
             }else{
                 System.out.println("El archivo no puede ser generado ya que se han reportado errores");
                 writer.write("El archivo no puede ser generado ya que se han reportado errores");
             }
             writer.close();
         } catch (Exception e) {
-            
+            System.out.println(e);
             System.out.println("El archivo no puede ser generado ya que se han reportado errores");
         }
     }

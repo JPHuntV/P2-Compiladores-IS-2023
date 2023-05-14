@@ -1,0 +1,18 @@
+
+int otraFuncion(){
+	bool test = true$
+}
+
+int main(){
+	bool test = true$
+	string str = "Hola $%&/#$&) mundo"$
+	int mi = 2 + 2*8 + 3$
+	char unChar$
+	float unFloat = "a"$
+	return mi$
+}
+
+
+int otraFuncion3(){
+	bool test = true$
+}
