@@ -101,18 +101,28 @@ precedence left expresionRelacional;
 //punto de entrada al analisis
 start with inicio;
 
-inicio ::= programa:e {:System.out.println("El programa ha sido parseado de manera exitosa"); RESULT = new Node("inicio",new Node[]{(Node)e}); :};
+inicio ::= programa:e {:
+        System.out.println("El programa ha sido parseado de manera exitosa");
+        ASTNode inicio = new ASTNode("inicio");
+        inicio.addChild((ASTNode)e);
+        RESULT = inicio;
+    :};
 
 
-programa ::= main:e {: RESULT = new Node("programa",new Node[]{(Node)e});:}
-    | funciones:f main:m {:RESULT = new Node("programa", new Node[]{(Node)f, (Node)m});:}
-    | main:m funciones:f {:RESULT = new Node("programa", new Node[]{(Node)m, (Node)f});:}
-    | funciones:f main:m funciones:e {:RESULT = new Node("programa", new Node[]{(Node)f, (Node)m, (Node)e});:}
+programa ::= main:e {: 
+        ASTNode programa = new ASTNode("programa");
+        programa.addChild((ASTNode)e);
+        RESULT = programa;
+    :}
+    | funciones:f main:m 
+    | main:m funciones:f 
+    | funciones:f main:m funciones:e
     ;
 
 
 main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE 
     {: 
+        
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t )){
@@ -142,25 +152,35 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
         }
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
-        RESULT = new Node("main",new Node[] {new Node((String)t), new Node(e), new Node("("), new Node(")"), new Node("{"), (Node)d, new Node("}")});
+        ASTNode main = new ASTNode("declaraFuncion","main");
+
+        main.addChild((ASTNode) d);
+        main.addChild(new ASTNode("dataType",t));
+        RESULT = main;    
     :};
 
-funciones ::= funciones:f declaraFuncion:d {: RESULT = new Node("funciones",new Node[]{(Node)f,(Node)d});:}
-    | declaraFuncion:d {: RESULT = new Node("funciones",new Node[]{(Node)d});:}
+funciones ::= funciones:f declaraFuncion:d 
+    | declaraFuncion:d 
     ;
 
 
-expresion ::= expresionLogica:e {:RESULT = new Node("expresion",new Node[]{(Node)e});:}
-    |expresionAritmetica:e {:RESULT = new Node("expresion",new Node[]{(Node)e});:}
+expresion ::= expresionLogica:e {:
+        ((ASTNode)e).setType("init");
+        RESULT = (ASTNode)e;
+    :}
+    |expresionAritmetica:e {:
+        ((ASTNode)e).setType("init");
+        RESULT = (ASTNode)e;
+    :}
     ;
 
 
-operadorArit::= MAS:e {:RESULT = new Node("operadorArit", new Node[] {new Node((String)e)});:}
-    | MENOS:e {:RESULT = new Node("operadorArit", new Node[] {new Node((String)e)});:}
-    | MULT :e {:RESULT = new Node("operadorArit", new Node[] {new Node((String)e)});:}
-    | POTENCIA :e {:RESULT = new Node("operadorArit", new Node[] {new Node((String)e)});:}
-    | DIV :e {:RESULT = new Node("operadorArit", new Node[] {new Node((String)e)});:}
-    | MODULO:e {:RESULT = new Node("operadorArit", new Node[] {new Node((String)e)});:}
+operadorArit::= MAS:e {:RESULT = e;:}
+    | MENOS:e {:RESULT = e;:}
+    | MULT :e {:RESULT = e;:}
+    | POTENCIA :e {:RESULT = e;:}
+    | DIV :e {:RESULT = e;:}
+    | MODULO:e {:RESULT = e;:}
     ;
 
 
@@ -186,25 +206,20 @@ operadorLogico ::= AND
     ;
 
 
-expresionAritmetica ::= operandoArit:e {:RESULT = new Node("expresionAritmetica",new Node[]{(Node) e});:}
-    | expresionAritmetica:ex operadorArit:op operandoArit:e 
-    {:
-        //String primerOperando  = ((Node)ex).getSymbol();
-        //String segundoOperando = ((Node)e).getSymbol();
-        //if(primerOperando == "int" || primerOperando == "float"){
-        //    if(segundoOperando == "int" || segundoOperando == "float"){
-        //        System.out.println("operacion correcta ");
-                RESULT = new Node(((Node)op).getChildren()[0].getSymbol(),new Node[]{(Node) ex, (Node)e});
-        //    }
-        //}else if(primerOperando == "string" || primerOperando == "char"){
-        //    if(segundoOperando == "string" || segundoOperando == "char"){
-        //        System.out.println("operacion correcta ");
-        //        RESULT = new Node("expresionAritmetica",new Node[]{(Node) ex,(Node)op, (Node)e});
-        //    }
-        //}else{
-        //    System.out.println("No se puede llevar a cabo la operacion "+primerOperando.+" "+((Node)op).getSymbol()+" "+segundoOperando );
-        //}
+expresionAritmetica ::= operandoArit:e {:
+        RESULT =(ASTNode)e;
     :}
+    | expresionAritmetica:ex operadorArit:op operandoArit:e {:
+        ASTNode expresionBinaria = new ASTNode("tipo","expresionBinaria");
+        ASTNode operador = new ASTNode("operador",op);
+        ASTNode res = new ASTNode("res");
+        res.addChild((ASTNode)expresionBinaria);
+        res.addChild((ASTNode)operador);
+        res.addChild((ASTNode)ex);
+        res.addChild((ASTNode)e);
+        RESULT = res;
+    :}
+   
     ;
 
 
@@ -214,12 +229,26 @@ expresionAritmetica ::= operandoArit:e {:RESULT = new Node("expresionAritmetica"
 expresionRelacional ::= operandoRel opRelacional operandoRel ;
 
 
-expresionLogica ::= terminoLogico:t {:RESULT = new Node("expresionLogica", new Node[]{(Node) t});:}
+expresionLogica ::= terminoLogico:t {:
+        System.out.println("terminoLogico");
+        System.out.println(t);
+        ASTNode terminoLogico = new ASTNode("terminoLogico");
+        terminoLogico.addChild((ASTNode)t);
+
+        
+        RESULT = (ASTNode)t;
+    :}
     | expresionLogica operadorLogico terminoLogico
     ;
 
 
-terminoLogico ::= LITERAL_BOOL:b {:RESULT = new Node("terminoLogico", new Node[]{new Node((String) b)});:}
+terminoLogico ::= LITERAL_BOOL:b {:
+        System.out.println("literal_bool");
+        System.out.println(b);
+        ASTNode literal_bool = new ASTNode("literal_bool");
+        literal_bool.addChild(new ASTNode(b));
+        RESULT = (literal_bool);
+    :}
     | LPAREN expresionRelacional RPAREN
     | expresionRelacional
     | NOT terminoLogico
@@ -230,19 +259,31 @@ operandoArit ::= IDENTIFIER
     | LITERAL_STRING:e {:
         System.out.println("literal_string");
         System.out.println(e);
-        RESULT = new Node("operandoArit",new Node[]{new Node((String) e)});
+        ASTNode literal_string = new ASTNode("literal_string");
+        literal_string.addChild(new ASTNode(e));
+        RESULT = literal_string;
     :}
     | LITERAL_INT:e {:
         System.out.println("literal_int");
         System.out.println(e);
-        RESULT = new Node("operandoArit",new Node[]{new Node((String) e)});
-        :}    
+        ASTNode literal_int = new ASTNode("literal_int");
+        literal_int.addChild(new ASTNode(e));
+        RESULT = literal_int;
+    :}
     | LITERAL_FLOAT:e {:
-        RESULT = new Node("operandoArit",new Node[]{new Node((String) e)});
-        :} 
+        System.out.println("literal_float");
+        System.out.println(e);
+        ASTNode literal_float = new ASTNode("literal_float");
+        literal_float.addChild(new ASTNode(e));
+        RESULT = literal_float;
+    :}
     | LITERAL_CHAR:e {:
-        RESULT = new Node("operandoArit",new Node[]{new Node((String) e)});
-        :}    
+        System.out.println("literal_char");
+        System.out.println(e);
+        ASTNode literal_char = new ASTNode("literal_char");
+        literal_char.addChild(new ASTNode(e));
+        RESULT = literal_char;
+    :}
     | llamaFuncion   
     | operadorUnario 
     | LBRACKET array RBRACKET
@@ -252,7 +293,7 @@ operandoArit ::= IDENTIFIER
 
 
 operandoRel ::= operandoArit 
-    | LITERAL_BOOL:b {:RESULT = new Node("operandoRel", new Node[]{new Node((String) b)});:}
+    | LITERAL_BOOL:b 
     ;
 
 
@@ -305,7 +346,7 @@ estructuraControl ::= if
 
 
 return ::= RETURN expresion
-    |RETURN:r {:RESULT = new Node(r):}
+    |RETURN:r 
     ;
 
 
@@ -336,9 +377,13 @@ sentencia ::= asignacion DOLLAR
     | estructuraControl 
     | expresion DOLLAR 
     | declaraArray DOLLAR 
-    | declaraVar:a DOLLAR {:RESULT = new Node("sentencia",new Node[]{(Node)a,new Node("$")});:}
-    | declaraVarNoAsig:a DOLLAR {:RESULT = new Node("sentencia",new Node[]{(Node)a,new Node("$")});:}
-    | return:a DOLLAR {:RESULT = new Node("sentencia",new Node[]{(Node)a,new Node("$")});:}
+    | declaraVar:a DOLLAR {:
+        ASTNode declaraVar = new ASTNode("declaraVar");
+        declaraVar.addChild((ASTNode)a);
+        RESULT = a;
+    :}
+    | declaraVarNoAsig:a DOLLAR 
+    | return:a DOLLAR 
     | break DOLLAR
     | getValorArray DOLLAR 
     | setValorArray DOLLAR
@@ -347,10 +392,21 @@ sentencia ::= asignacion DOLLAR
     ;
 
 
-bloque ::= sentencia:s {:RESULT = new Node("bloque",new Node[]{(Node)s});:}
+bloque ::= sentencia:s {:
+        ASTNode res = new ASTNode("bloque");
+        res.addChild((ASTNode)s);
+        RESULT = res;
+    :}
     | bloque:b sentencia:s {:
-        System.out.println("bloque");
-        RESULT = new Node("bloque",new Node[]{(Node)b,(Node)s});:}
+       System.out.println("bloque");
+    ASTNode res = new ASTNode("bloque");
+    ASTNode bNode = (ASTNode)b;
+    for(ASTNode child : bNode.getChildren()){
+        res.addChild(child);
+    }
+    res.addChild((ASTNode)s);
+    RESULT = res;
+:}
     ;
 
 
@@ -425,7 +481,6 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros RPAREN LBRACE bloqueFun
         }
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
-        RESULT = new Node( "declaraFuncion", new Node[]{new Node((String)t), new Node(e), new Node("null"), (Node)b });
        
     :};
 
@@ -452,42 +507,52 @@ declaraArrayAux ::= LBRACKET LITERAL_INT RBRACKET
 
 declaraVarNoAsig ::= INT:t IDENTIFIER:i {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            RESULT = new Node("declaraVarNoAsig", new Node[]{new Node((String)t),new Node(i)});
         :}  
     | CHAR:t IDENTIFIER:i {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            RESULT = new Node("declaraVarNoAsig", new Node[]{new Node((String)t),new Node(i)});
         :}
     | tipo:t IDENTIFIER:i declaraArrayAux {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            RESULT = new Node("declaraVarNoAsig", new Node[]{new Node((String)t),new Node(i)});
         :}
     | tipo:t IDENTIFIER:i  {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            RESULT = new Node("declaraVarNoAsig", new Node[]{new Node((String)t),new Node(i)});
         :}
     ;
 
 declaraVar ::= 
        INT:t IDENTIFIER:i ASIG expresion:e {:
            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-           System.out.println("declara int = ");
-           System.out.println(((Node)e).getSymbol());
-           RESULT = new Node("declaraVar", new Node[]{new Node((String)t),new Node(i),new Node("="),(Node)e});
+           ASTNode declaraVar = new ASTNode("declaraVar", i);
+           declaraVar.addChild( new ASTNode("dataType", t) );
+           declaraVar.addChild( (ASTNode)e);
+           RESULT = declaraVar;
+
        :}  
     |
     CHAR:t IDENTIFIER:i  ASIG expresion:e {:
-            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            System.out.println("declara char");
-            RESULT = new Node("declaraVar", new Node[]{new Node((String)t),new Node(i),new Node("="),(Node)e});
-        :}
-    | tipo:t IDENTIFIER:i declaraArrayAux ASIG expresion{:
-            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-        :}
+           listaVariables.addParameter(new ElementoTabla(i,(String) t));
+           ASTNode declaraVar = new ASTNode("declaraVar", i);
+           declaraVar.addChild( new ASTNode("dataType", t) );
+           declaraVar.addChild( (ASTNode)e);
+           RESULT = declaraVar;
+
+       :}
+    | tipo:t IDENTIFIER:i declaraArrayAux ASIG expresion:e{:
+           listaVariables.addParameter(new ElementoTabla(i,(String) t));
+           ASTNode declaraVar = new ASTNode("declaraVar", i);
+           declaraVar.addChild( new ASTNode("dataType", t) );
+           declaraVar.addChild( (ASTNode)e);
+           RESULT = declaraVar;
+
+       :}
     | tipo:t IDENTIFIER:i ASIG expresion:e {:
-            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            RESULT = new Node("declaraVar", new Node[]{new Node((String)t),new Node(i),new Node("="),(Node)e});
-        :}
+           listaVariables.addParameter(new ElementoTabla(i,(String) t));
+           ASTNode declaraVar = new ASTNode("declaraVar", i);
+           declaraVar.addChild( new ASTNode("dataType", t) );
+           declaraVar.addChild( (ASTNode)e);
+           RESULT = declaraVar;
+
+       :}
     ;
 
 

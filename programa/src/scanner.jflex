@@ -80,12 +80,12 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     //"%"             {return symbol(PORCIENTO); }
     "^"             {return symbol(AND); }
     //"&"             {return symbol(AMPER); }
-    "*"             {return symbol(MULT); }
+    "*"             {return symbol(MULT, yytext()); }
     "("             {return symbol(LPAREN); }
     ")"             {return symbol(RPAREN); }
-    "-"             {return symbol(MENOS); }
+    "-"             {return symbol(MENOS, yytext()); }
     //"_"             {return symbol(GUIONBAJO); }
-    "+"             {return symbol(MAS); }
+    "+"             {return symbol(MAS, yytext()); }
     "="             {return symbol(ASIG); }
     "["             {return symbol(LBRACKET); }
     "]"             {return symbol(RBRACKET); }
@@ -100,17 +100,17 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "<"             {return symbol(MENOR); }
     ">"             {return symbol(MAYOR); }
     //"?"             {return symbol(RINTERRO); }
-    "/"             {return symbol(DIV); }
+    "/"             {return symbol(DIV, yytext()); }
     //"|"             {return symbol(PIPE); }
     //"\\"            {return symbol(SLASH); }
     "<="            {return symbol(MENORIGUAL); }
     ">="            {return symbol(MAYORIGUAL); }
     "=="            {return symbol(EQUAL); }
     "!="            {return symbol(NOTEQUAL); }
-    "**"            {return symbol(POTENCIA); }
-    "~"             {return symbol(MODULO); }
-    "++"            {return symbol(INCREMENTO); }
-    "--"            {return symbol(DECREMENTO); }
+    "**"            {return symbol(POTENCIA, yytext()); }
+    "~"             {return symbol(MODULO, yytext()); }
+    "++"            {return symbol(INCREMENTO, yytext()); }
+    "--"            {return symbol(DECREMENTO, yytext()); }
     "not"           {return symbol(NOT); }
     "int"           {return symbol(INT,yytext()); }
     "float"         {return symbol(FLOAT,yytext()); }
@@ -119,8 +119,8 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "array"         {return symbol(ARRAY,yytext()); }
     "bool"          {return symbol(BOOL,yytext()); }
     "main"          {return symbol(MAIN,yytext()); }
-    "true"          {return symbol(LITERAL_BOOL, true); }
-    "false"         {return symbol(LITERAL_BOOL, false); }
+    "true"          {return symbol(LITERAL_BOOL ,yytext()); }
+    "false"         {return symbol(LITERAL_BOOL,yytext()); }
     "if"            {return symbol(IF);  }
     "elif"          {return symbol(ELIF); }
     "else"          {return symbol(ELSE); }
@@ -135,11 +135,12 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "/_"            { yybegin(COMMENTB); } //indica que la siguiente expresión será un comentario en bloque
 
     //terminal de literales
-    {numero}        {return symbol(LITERAL_INT, new Integer(Integer.parseInt(yytext()))); }
+    {numero}        {System.out.println("found numero");
+      return symbol(LITERAL_INT, yytext()); }
     {float}         {return symbol(LITERAL_FLOAT, new Float(yytext().substring(0,yylength()-1)));  }
     {identificador} { return symbol(IDENTIFIER, yytext()); }
-    {string}        {return symbol(LITERAL_STRING); }
-    {char}          {return symbol(LITERAL_CHAR); }
+    {string}        {return symbol(LITERAL_STRING, yytext()); }
+    {char}          {return symbol(LITERAL_CHAR, yytext()); }
     {Comment}           { /* ignore */ }
     {WhiteSpace}        { /* ignore */ }
 }

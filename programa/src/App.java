@@ -76,6 +76,7 @@ public class App {
                         }
                     }
                 }
+                
                 System.out.println("Parse tree: " + result.value.toString());
             }else{
                 System.out.println("El archivo no puede ser generado ya que se han reportado errores");

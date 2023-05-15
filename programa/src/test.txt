@@ -1,18 +1,10 @@
 
-int otraFuncion(){
-	bool test = true$
-}
-
 int main(){
-	bool test = true$
-	string str = "Hola $%&/#$&) mundo"$
-	int mi = 2 + 2*8 + 3$
-	char unChar$
-	float unFloat = "a"$
-	return mi$
-}
 
-
-int otraFuncion3(){
-	bool test = true$
+	int mi = 2$
+	string misd = "as"$
+	float d = 2$
+	@float dd = 2.2$
+	bool ds = true$
+	
 }
