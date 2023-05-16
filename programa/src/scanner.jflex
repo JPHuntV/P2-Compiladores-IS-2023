@@ -73,12 +73,12 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
 //definición de las terminales
 //existen terminales comentadas ya que no forman parte de la gramatica pero podrian ser incluidas
 <YYINITIAL>{
-    "!"             {return symbol(REXC); }
+    "!"             {return symbol(REXC, yytext()); }
     //"@"             {return symbol(ARROBA); }
-    "#"             {return symbol(OR); }
+    "#"             {return symbol(OR, yytext()); }
     "$"             {return symbol(DOLLAR); }
     //"%"             {return symbol(PORCIENTO); }
-    "^"             {return symbol(AND); }
+    "^"             {return symbol(AND, yytext()); }
     //"&"             {return symbol(AMPER); }
     "*"             {return symbol(MULT, yytext()); }
     "("             {return symbol(LPAREN); }
@@ -121,12 +121,12 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "main"          {return symbol(MAIN,yytext()); }
     "true"          {return symbol(LITERAL_BOOL ,yytext()); }
     "false"         {return symbol(LITERAL_BOOL,yytext()); }
-    "if"            {return symbol(IF);  }
-    "elif"          {return symbol(ELIF); }
-    "else"          {return symbol(ELSE); }
-    "while"         {return symbol(WHILE); }
-    "do"            {return symbol(DO); }
-    "for"           {return symbol(FOR); }
+    "if"            {return symbol(IF,yytext());  }
+    "elif"          {return symbol(ELIF,yytext()); }
+    "else"          {return symbol(ELSE,yytext()); }
+    "while"         {return symbol(WHILE,yytext()); }
+    "do"            {return symbol(DO,yytext()); }
+    "for"           {return symbol(FOR,yytext()); }
     "return"        {return symbol(RETURN); }
     "break"         {return symbol(BREAK); }
     "leer"          {return symbol(LEER,yytext()); }
@@ -137,7 +137,7 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     //terminal de literales
     {numero}        {System.out.println("found numero");
       return symbol(LITERAL_INT, yytext()); }
-    {float}         {return symbol(LITERAL_FLOAT, new Float(yytext().substring(0,yylength()-1)));  }
+    {float}         {return symbol(LITERAL_FLOAT,yytext());  }
     {identificador} { return symbol(IDENTIFIER, yytext()); }
     {string}        {return symbol(LITERAL_STRING, yytext()); }
     {char}          {return symbol(LITERAL_CHAR, yytext()); }

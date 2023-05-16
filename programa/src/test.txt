@@ -1,10 +1,12 @@
 
 int main(){
-
-	int mi = 2$
-	string misd = "as"$
-	float d = 2$
-	@float dd = 2.2$
-	bool ds = true$
+	if (false^true){
+			int a = 2$
+	}elif (false^true){
+		int aa = 2$
+	}else{
+		int asa = 2$
+	}
+	return llamada()$
 	
 }

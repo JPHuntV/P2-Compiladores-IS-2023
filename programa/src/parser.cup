@@ -193,15 +193,24 @@ opRelacional ::= MENOR
     ;
 
 
-operadorUnario ::= MENOS numerico  %prec uminus
+operadorUnario ::= MENOS:op numerico:e  {:
+        System.out.println("operador unario");
+        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode operador = new ASTNode("operador",op);
+        ASTNode res = new ASTNode("res");
+        res.addChild((ASTNode)expresionUnaria);
+        res.addChild((ASTNode)operador);
+        res.addChild(new ASTNode("value", (ASTNode)e));
+        RESULT = res;
+    :} %prec uminus
     | INCREMENTO IDENTIFIER 
     | DECREMENTO IDENTIFIER
     ;
 
 
-operadorLogico ::= AND
-    |OR 
-    |REXC
+operadorLogico ::= AND:e {:RESULT = e;:}
+    |OR:e {:RESULT = e;:} 
+    |REXC:e {:RESULT = e;:}
     //|NOT
     ;
 
@@ -234,11 +243,16 @@ expresionLogica ::= terminoLogico:t {:
         System.out.println(t);
         ASTNode terminoLogico = new ASTNode("terminoLogico");
         terminoLogico.addChild((ASTNode)t);
-
-        
         RESULT = (ASTNode)t;
     :}
-    | expresionLogica operadorLogico terminoLogico
+    | expresionLogica:ex operadorLogico:op terminoLogico:e{:
+        ASTNode res = new ASTNode("res");
+        res.addChild(new ASTNode("tipo","expresionLogica"));
+        res.addChild(new ASTNode("operador",op));
+        res.addChild((ASTNode)ex);
+        res.addChild((ASTNode)e);
+        RESULT = res;
+    :}
     ;
 
 
@@ -284,8 +298,20 @@ operandoArit ::= IDENTIFIER
         literal_char.addChild(new ASTNode(e));
         RESULT = literal_char;
     :}
-    | llamaFuncion   
-    | operadorUnario 
+    | llamaFuncion:e{:
+        System.out.println("llamaFuncion");
+        System.out.println(e);
+        ASTNode llamaFuncion = new ASTNode("llamaFuncion");
+        llamaFuncion.addChild((ASTNode)e);
+        RESULT = llamaFuncion;
+    :}   
+    | operadorUnario:e{:
+        System.out.println("operadorUnario");
+        System.out.println(e);
+        ASTNode operadorUnario = new ASTNode("operadorUnario");
+        operadorUnario.addChild((ASTNode)e);
+        RESULT = operadorUnario;
+    :}  
     | LBRACKET array RBRACKET
     | getValorArray
     | LPAREN expresionAritmetica RPAREN
@@ -297,11 +323,11 @@ operandoRel ::= operandoArit
     ;
 
 
-literales ::= LITERAL_INT
-    |LITERAL_FLOAT
-    |LITERAL_BOOL
-    |LITERAL_STRING
-    |LITERAL_CHAR
+literales ::= LITERAL_INT:e {:RESULT = e;:}
+    |LITERAL_FLOAT:e {:RESULT = e;:}
+    |LITERAL_BOOL:e {:RESULT = e;:}
+    |LITERAL_STRING:e {:RESULT = e;:}
+    |LITERAL_CHAR:e {:RESULT = e;:}
     |LBRACKET array RBRACKET
     ;
 
@@ -311,16 +337,47 @@ array ::= expresion
     ;
 
 
-if ::= IF LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE 
+if ::= IF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE {:
+        ASTNode res =  new ASTNode("estructuraControl");
+        res.addChild(new ASTNode("tipo","ifStm"));
+        res.addChild(new ASTNode("eval", (ASTNode)exp));
+        res.addChild(new ASTNode("body",(ASTNode)b));
+        RESULT = res;
+
+    :}
     ;
 
 
-elif ::= ELIF LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE
-    | elif ELIF LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE
+elif ::= ELIF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE{:
+        ASTNode res =  new ASTNode("estructuraControl");
+        res.addChild(new ASTNode("tipo","elifStm"));
+        res.addChild(new ASTNode("eval", (ASTNode)exp));
+        res.addChild(new ASTNode("body",(ASTNode)b));
+        RESULT = res;
+
+    :}
+    | elif:e ELIF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE{:
+        ASTNode res =  new ASTNode("estructuraControl");
+        res.addChild(new ASTNode("tipo","elifStm"));
+        res.addChild(new ASTNode("eval", (ASTNode)exp));
+        ((ASTNode)b).addChild(new ASTNode("alternate",null));
+        res.addChild(new ASTNode("body",(ASTNode)b));
+        RESULT = res;
+
+        ((ASTNode)e).addChild(new ASTNode("alternate",res));
+        RESULT = e;
+    :}
     ;
 
 
-else ::= ELSE LBRACE bloque RBRACE;
+else ::= ELSE LBRACE bloque:b RBRACE {:
+        ASTNode res =  new ASTNode("estructuraControl");
+        res.addChild(new ASTNode("tipo","elseStm"));
+        res.addChild(new ASTNode("body",(ASTNode)b));
+        RESULT = res;
+
+    :}
+;
 
 
 while ::= WHILE LPAREN expresionRelLog RPAREN LBRACE bloque RBRACE 
@@ -335,17 +392,33 @@ for ::= FOR LPAREN declaraVar DOLLAR expresionRelLog DOLLAR expresion  RPAREN LB
     ;
 
 
-estructuraControl ::= if
-    |if elif
-    |if elif else
-    |if  else
+estructuraControl ::= if:f{:
+        ((ASTNode)f).addChild(new ASTNode("alternate", null));
+        RESULT = f;
+    :}
+    |if:f elif:e {:
+        ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) e));
+        RESULT = f;
+    :}
+    |if:f elif:ef else:e {:
+        ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) ef));
+        ((ASTNode)f).addChild(new ASTNode("alternateElse",(ASTNode) e));
+        RESULT = f;
+    :}
+    |if:f  else:e {:
+        ((ASTNode)f).addChild(new ASTNode("alternateElse",(ASTNode) e));
+        RESULT = f;
+    :}
     |while
     |doWhile 
     |for
     ;
 
 
-return ::= RETURN expresion
+return ::= RETURN:r expresion:e{:
+        ((ASTNode)e).setType("value");
+        RESULT = ((ASTNode)e);
+    :}
     |RETURN:r 
     ;
 
@@ -353,18 +426,38 @@ return ::= RETURN expresion
 break ::= BREAK;
 
 
-argumento ::= IDENTIFIER
-    | literales
+argumento ::= IDENTIFIER:e {:RESULT = e;:}
+    | literales:e {:RESULT = e;:}
     ;
 
 
-argumentos ::= argumento
-    | argumentos COMA expresion
+argumentos ::= argumento:a {:
+        ASTNode res = new ASTNode("bloque");
+        res.addChild(new ASTNode((String)a));
+        RESULT = res;
+    :}
+    | argumentos:a COMA argumento:e {:
+       System.out.println("bloque");
+    ASTNode res = new ASTNode("argumentos");
+    ASTNode bNode = (ASTNode)a;
+    for(ASTNode child : bNode.getChildren()){
+        res.addChild(child);
+    }
+    res.addChild(new ASTNode((String)e));
+    RESULT = res;
+:}
     ;
 
 
-llamaFuncion ::= IDENTIFIER  LPAREN RPAREN
-    | IDENTIFIER LPAREN argumentos RPAREN 
+llamaFuncion ::= IDENTIFIER:e  LPAREN RPAREN {:
+        ASTNode llamadaFuncion = new ASTNode("llamadaFuncion", e);
+        RESULT = llamadaFuncion;
+    :}
+    | IDENTIFIER:e LPAREN argumentos:a RPAREN {:
+        ASTNode llamadaFuncion = new ASTNode("llamadaFuncion", e);
+        llamadaFuncion.addChild((ASTNode)a);
+        RESULT = llamadaFuncion;
+    :}
     | lectura
     | escritura 
     ;
@@ -374,7 +467,11 @@ asignacion ::= IDENTIFIER:e ASIG expresion ;
 
 
 sentencia ::= asignacion DOLLAR 
-    | estructuraControl 
+    | estructuraControl:a {:
+        ASTNode estructuraControl = new ASTNode("estructuraControl");
+        estructuraControl.addChild((ASTNode)a);
+        RESULT = (ASTNode)a;
+    :}
     | expresion DOLLAR 
     | declaraArray DOLLAR 
     | declaraVar:a DOLLAR {:
@@ -382,8 +479,16 @@ sentencia ::= asignacion DOLLAR
         declaraVar.addChild((ASTNode)a);
         RESULT = a;
     :}
-    | declaraVarNoAsig:a DOLLAR 
-    | return:a DOLLAR 
+    | declaraVarNoAsig:a DOLLAR {:
+        ASTNode declaraVar = new ASTNode("declaraVar");
+        declaraVar.addChild((ASTNode)a);
+        RESULT = a;
+    :}
+    | return:a DOLLAR {:
+        ASTNode returnStm = new ASTNode("returnStm");
+        returnStm.addChild((ASTNode)a);
+        RESULT = returnStm;
+    :}
     | break DOLLAR
     | getValorArray DOLLAR 
     | setValorArray DOLLAR
@@ -505,8 +610,12 @@ declaraArray ::=  INT IDENTIFIER LBRACKET LITERAL_INT RBRACKET
 declaraArrayAux ::= LBRACKET LITERAL_INT RBRACKET
     ;
 
-declaraVarNoAsig ::= INT:t IDENTIFIER:i {:
+declaraVarNoAsig ::= 
+    INT:t IDENTIFIER:i {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));
+            ASTNode declaraVar = new ASTNode("declaraVar", i);
+            declaraVar.addChild( new ASTNode("dataType", t) );
+            RESULT = declaraVar;
         :}  
     | CHAR:t IDENTIFIER:i {:
             listaVariables.addParameter(new ElementoTabla(i,(String) t));
@@ -566,7 +675,21 @@ setValorArray ::= getValorArray ASIG expresion   ;
 lectura ::= LEER LPAREN numerico RPAREN ;
 
 
-numerico ::= LITERAL_INT | LITERAL_FLOAT  ;
+numerico ::= LITERAL_INT:e {:
+        System.out.println("literal_int");
+        System.out.println(e);
+        ASTNode literal_int = new ASTNode("literal_int");
+        literal_int.addChild(new ASTNode(e));
+        RESULT = literal_int;
+    :}
+    | LITERAL_FLOAT:e {:
+        System.out.println("literal_int");
+        System.out.println(e);
+        ASTNode literal_int = new ASTNode("literal_int");
+        literal_int.addChild(new ASTNode(e));
+        RESULT = literal_int;
+    :}
+    ;
 
 
 escritura ::= ESCRIBIR LPAREN expresion RPAREN ; 

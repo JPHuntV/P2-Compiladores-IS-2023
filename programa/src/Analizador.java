@@ -856,12 +856,12 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 59: break;
           case 4:
-            { return symbol(REXC);
+            { return symbol(REXC, yytext());
             }
           // fall through
           case 60: break;
           case 5:
-            { return symbol(OR);
+            { return symbol(OR, yytext());
             }
           // fall through
           case 61: break;
@@ -942,7 +942,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 76: break;
           case 21:
-            { return symbol(AND);
+            { return symbol(AND, yytext());
             }
           // fall through
           case 77: break;
@@ -992,7 +992,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 86: break;
           case 31:
-            { return symbol(LITERAL_FLOAT, new Float(yytext().substring(0,yylength()-1)));
+            { return symbol(LITERAL_FLOAT,yytext());
             }
           // fall through
           case 87: break;
@@ -1012,12 +1012,12 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 90: break;
           case 35:
-            { return symbol(DO);
+            { return symbol(DO,yytext());
             }
           // fall through
           case 91: break;
           case 36:
-            { return symbol(IF);
+            { return symbol(IF,yytext());
             }
           // fall through
           case 92: break;
@@ -1032,7 +1032,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 94: break;
           case 39:
-            { return symbol(FOR);
+            { return symbol(FOR,yytext());
             }
           // fall through
           case 95: break;
@@ -1057,12 +1057,12 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 99: break;
           case 44:
-            { return symbol(ELIF);
+            { return symbol(ELIF,yytext());
             }
           // fall through
           case 100: break;
           case 45:
-            { return symbol(ELSE);
+            { return symbol(ELSE,yytext());
             }
           // fall through
           case 101: break;
@@ -1102,7 +1102,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 108: break;
           case 53:
-            { return symbol(WHILE);
+            { return symbol(WHILE,yytext());
             }
           // fall through
           case 109: break;
