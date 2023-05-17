@@ -97,16 +97,16 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     //"\""            {return symbol(COMILLADOB); }
     ","             {return symbol(COMA); }
     //"."             {return symbol(PUNTO); }
-    "<"             {return symbol(MENOR); }
-    ">"             {return symbol(MAYOR); }
+    "<"             {return symbol(MENOR, yytext()); }
+    ">"             {return symbol(MAYOR, yytext()); }
     //"?"             {return symbol(RINTERRO); }
     "/"             {return symbol(DIV, yytext()); }
     //"|"             {return symbol(PIPE); }
     //"\\"            {return symbol(SLASH); }
-    "<="            {return symbol(MENORIGUAL); }
-    ">="            {return symbol(MAYORIGUAL); }
-    "=="            {return symbol(EQUAL); }
-    "!="            {return symbol(NOTEQUAL); }
+    "<="            {return symbol(MENORIGUAL, yytext()); }
+    ">="            {return symbol(MAYORIGUAL, yytext()); }
+    "=="            {return symbol(EQUAL, yytext()); }
+    "!="            {return symbol(NOTEQUAL, yytext()); }
     "**"            {return symbol(POTENCIA, yytext()); }
     "~"             {return symbol(MODULO, yytext()); }
     "++"            {return symbol(INCREMENTO, yytext()); }

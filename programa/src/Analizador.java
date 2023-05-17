@@ -912,7 +912,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 70: break;
           case 15:
-            { return symbol(MENOR);
+            { return symbol(MENOR, yytext());
             }
           // fall through
           case 71: break;
@@ -922,7 +922,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 72: break;
           case 17:
-            { return symbol(MAYOR);
+            { return symbol(MAYOR, yytext());
             }
           // fall through
           case 73: break;
@@ -962,7 +962,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 80: break;
           case 25:
-            { return symbol(NOTEQUAL);
+            { return symbol(NOTEQUAL, yytext());
             }
           // fall through
           case 81: break;
@@ -997,17 +997,17 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 87: break;
           case 32:
-            { return symbol(MENORIGUAL);
+            { return symbol(MENORIGUAL, yytext());
             }
           // fall through
           case 88: break;
           case 33:
-            { return symbol(EQUAL);
+            { return symbol(EQUAL, yytext());
             }
           // fall through
           case 89: break;
           case 34:
-            { return symbol(MAYORIGUAL);
+            { return symbol(MAYORIGUAL, yytext());
             }
           // fall through
           case 90: break;

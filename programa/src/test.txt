@@ -1,12 +1,13 @@
 
 int main(){
-	if (false^true){
-			int a = 2$
-	}elif (false^true){
-		int aa = 2$
-	}else{
-		int asa = 2$
+	if(true){
+		int as$
+		string str$
+		char ch$
+		bool tb$
+		int kk[3]$
+
 	}
-	return llamada()$
+	return 2+2$
 	
 }
