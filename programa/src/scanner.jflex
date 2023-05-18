@@ -111,7 +111,7 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "~"             {return symbol(MODULO, yytext()); }
     "++"            {return symbol(INCREMENTO, yytext()); }
     "--"            {return symbol(DECREMENTO, yytext()); }
-    "not"           {return symbol(NOT); }
+    "not"           {return symbol(NOT, yytext()); }
     "int"           {return symbol(INT,yytext()); }
     "float"         {return symbol(FLOAT,yytext()); }
     "string"        {return symbol(STRING,yytext()); }

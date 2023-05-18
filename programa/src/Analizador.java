@@ -1042,7 +1042,7 @@ public class Analizador implements sym, java_cup.runtime.Scanner {
           // fall through
           case 96: break;
           case 41:
-            { return symbol(NOT);
+            { return symbol(NOT, yytext());
             }
           // fall through
           case 97: break;

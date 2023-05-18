@@ -78,10 +78,10 @@ terminal String IDENTIFIER, DOLLAR, INT, FLOAT, STRING, CHAR, ARRAY, BOOL,MAIN;
 
 non terminal  inicio, programa, main, funciones,expresion, opRelacional, operadorArit, 
     operadorUnario, operadorLogico, expresionAritmetica, expresionRelacional, expresionLogica, 
-    expresionRelLog, terminoLogico, operandoArit, operandoRel, array, if, elif, while, doWhile, 
+    terminoLogico, operandoArit, operandoRel, array, if, elif, while, doWhile, 
     for, estructuraControl, return, break, argumentos, llamaFuncion, asignacion, sentencia, bloque, 
     parametros, declaraFuncion,tipo, declaraArray, declaraArrayAux, declaraVar, declaraVarNoAsig, getValorArray, 
-    setValorArray, lectura, numerico, escritura, literales, argumento,  else, bloqueFunc;
+    setValorArray, lectura, numerico, escritura, literales, argumento,  else;
 
 
 //declaraciones de precedencia
@@ -114,9 +114,33 @@ programa ::= main:e {:
         programa.addChild((ASTNode)e);
         RESULT = programa;
     :}
-    | funciones:f main:m 
-    | main:m funciones:f 
-    | funciones:f main:m funciones:e
+    | funciones:f main:m {:
+        ((ASTNode)f).setType("programa");
+        ((ASTNode)f).addChild((ASTNode)m);
+        RESULT = f;
+    :}
+    | main:m funciones:f {: 
+        ASTNode programa = new ASTNode("programa");
+        programa.addChild((ASTNode)m);
+        ASTNode bNode = (ASTNode)f;
+        for(ASTNode child : bNode.getChildren()){
+            programa.addChild(child);
+        }
+        RESULT = programa;
+    :}
+    | funciones:f main:m funciones:e{: 
+        ASTNode programa = new ASTNode("programa");
+        ASTNode bNode = (ASTNode)f;
+        for(ASTNode child : bNode.getChildren()){
+            programa.addChild(child);
+        }
+        programa.addChild((ASTNode)m);
+        bNode = (ASTNode)e;
+        for(ASTNode child : bNode.getChildren()){
+            programa.addChild(child);
+        }
+        RESULT = programa;
+    :}
     ;
 
 
@@ -159,8 +183,23 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
         RESULT = main;    
     :};
 
-funciones ::= funciones:f declaraFuncion:d 
-    | declaraFuncion:d 
+funciones ::= funciones:f declaraFuncion:d {:
+        System.out.println("declaraFuncion");
+        ASTNode res = new ASTNode("declaraFuncion");
+        ASTNode bNode = (ASTNode)f;
+        for(ASTNode child : bNode.getChildren()){
+            res.addChild(child);
+        }
+        res.addChild((ASTNode)d);
+        RESULT = res;
+    :}
+    | declaraFuncion:d {:
+        ASTNode res = new ASTNode("declaraFuncion");
+        res.addChild((ASTNode)d);
+        RESULT = res;
+
+        
+    :}
     ;
 
 
@@ -173,6 +212,7 @@ expresion ::= expresionLogica:e {:
         RESULT = (ASTNode)e;
     :}
     ;
+
 
 
 operadorArit::= MAS:e {:RESULT = e;:}
@@ -203,8 +243,36 @@ operadorUnario ::= MENOS:op numerico:e  {:
         res.addChild(new ASTNode("value", (ASTNode)e));
         RESULT = res;
     :} %prec uminus
-    | INCREMENTO IDENTIFIER 
-    | DECREMENTO IDENTIFIER
+    |MENOS:op IDENTIFIER:e  {:
+        System.out.println("operador unario");
+        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode operador = new ASTNode("operador",op);
+        ASTNode res = new ASTNode("res");
+        res.addChild((ASTNode)expresionUnaria);
+        res.addChild((ASTNode)operador);
+        res.addChild(new ASTNode("value", e));
+        RESULT = res;
+    :} %prec uminus
+    | INCREMENTO:op IDENTIFIER:e {:
+        System.out.println("operador unario");
+        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode operador = new ASTNode("operador",op);
+        ASTNode res = new ASTNode("res");
+        res.addChild((ASTNode)expresionUnaria);
+        res.addChild((ASTNode)operador);
+        res.addChild(new ASTNode("value", e));
+        RESULT = res;
+    :}
+    | DECREMENTO:op IDENTIFIER:e{:
+        System.out.println("operador unario");
+        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode operador = new ASTNode("operador",op);
+        ASTNode res = new ASTNode("res");
+        res.addChild((ASTNode)expresionUnaria);
+        res.addChild((ASTNode)operador);
+        res.addChild(new ASTNode("value", e));
+        RESULT = res;
+    :}
     ;
 
 
@@ -265,13 +333,15 @@ expresionLogica ::= terminoLogico:t {:
 
 
 terminoLogico ::= LITERAL_BOOL:b {:
-        System.out.println("literal_bool");
-        System.out.println(b);
         ASTNode literal_bool = new ASTNode("literal_bool");
         literal_bool.addChild(new ASTNode(b));
         RESULT = (literal_bool);
     :}
-    | LPAREN expresionRelacional RPAREN
+    | LPAREN expresionRelacional:r RPAREN {:
+        ASTNode expresionRelacional = new ASTNode("expresionRelacional");
+        expresionRelacional.addChild((ASTNode)r);
+        RESULT = expresionRelacional;
+    :}
     | expresionRelacional:r {:
         System.out.println("expresionRelacional");
         System.out.println(r);
@@ -279,7 +349,13 @@ terminoLogico ::= LITERAL_BOOL:b {:
         expresionRelacional.addChild((ASTNode)r);
         RESULT = expresionRelacional;
     :}
-    | NOT terminoLogico
+    | NOT:op terminoLogico:t{:
+        ASTNode notOp = new ASTNode("notOp");
+        notOp.addChild((ASTNode)t);
+        ASTNode res =  new ASTNode("res");
+        res.addChild(notOp);
+        RESULT = (res);
+    :}
     ;
 
 
@@ -327,11 +403,8 @@ operandoArit ::=
         RESULT = llamaFuncion;
     :}   
     | operadorUnario:e{:
-        System.out.println("operadorUnario");
-        System.out.println(e);
-        ASTNode operadorUnario = new ASTNode("operadorUnario");
-        operadorUnario.addChild((ASTNode)e);
-        RESULT = operadorUnario;
+        ((ASTNode)e).setType("operadorUnario");
+        RESULT = ((ASTNode)e);
     :}  
     | LBRACKET array:e RBRACKET{:
         RESULT = e;
@@ -361,7 +434,7 @@ literales ::= LITERAL_INT:e {:RESULT = e;:}
     |LITERAL_BOOL:e {:RESULT = e;:}
     |LITERAL_STRING:e {:RESULT = e;:}
     |LITERAL_CHAR:e {:RESULT = e;:}
-    |LBRACKET array RBRACKET
+    |LBRACKET array:e RBRACKET {:RESULT = e;:}
     ;
 
 
@@ -432,7 +505,6 @@ while ::= WHILE LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE {:
         res.addChild(new ASTNode("eval", (ASTNode)exp));
         res.addChild(new ASTNode("body",(ASTNode)b));
         RESULT = res;
-
     :}
     ;
 
@@ -447,7 +519,15 @@ doWhile ::= DO LBRACE bloque:b RBRACE WHILE LPAREN expresionLogica:exp RPAREN DO
     ;
 
 
-for ::= FOR LPAREN declaraVar DOLLAR expresionRelLog DOLLAR expresion  RPAREN LBRACE bloque RBRACE 
+for ::= FOR LPAREN declaraVar:d DOLLAR expresionLogica:exp DOLLAR expresion:e  RPAREN LBRACE bloque:b RBRACE {:
+        ASTNode res =  new ASTNode("estructuraControl");
+        res.addChild(new ASTNode("tipo","forStm"));
+        res.addChild(new ASTNode("init", (ASTNode)d));
+        res.addChild(new ASTNode("eval", (ASTNode)exp));
+        res.addChild(new ASTNode("update", (ASTNode)e));
+        res.addChild(new ASTNode("body",(ASTNode)b));
+        RESULT = res;
+    :}
     ;
 
 
@@ -474,7 +554,9 @@ estructuraControl ::= if:f{:
     |doWhile:dw {:
         RESULT = dw;
     :}
-    |for
+    |for:f {:
+        RESULT = f;
+    :}
     ;
 
 
@@ -489,7 +571,9 @@ return ::= RETURN:r expresion:e{:
     ;
 
 
-break ::= BREAK;
+break ::= BREAK:r //{:    :}
+
+;
 
 
 argumento ::= IDENTIFIER:e {:RESULT = e;:}
@@ -498,20 +582,19 @@ argumento ::= IDENTIFIER:e {:RESULT = e;:}
 
 
 argumentos ::= argumento:a {:
-        ASTNode res = new ASTNode("bloque");
+        ASTNode res = new ASTNode("argumentos");
         res.addChild(new ASTNode((String)a));
         RESULT = res;
     :}
     | argumentos:a COMA argumento:e {:
-       System.out.println("bloque");
-    ASTNode res = new ASTNode("argumentos");
-    ASTNode bNode = (ASTNode)a;
-    for(ASTNode child : bNode.getChildren()){
-        res.addChild(child);
-    }
-    res.addChild(new ASTNode((String)e));
-    RESULT = res;
-:}
+        ASTNode res = new ASTNode("argumentos");
+        ASTNode bNode = (ASTNode)a;
+        for(ASTNode child : bNode.getChildren()){
+            res.addChild(child);
+        }
+        res.addChild(new ASTNode((String)e));
+        RESULT = res;
+    :}
     ;
 
 
@@ -524,8 +607,14 @@ llamaFuncion ::= IDENTIFIER:e  LPAREN RPAREN {:
         llamadaFuncion.addChild((ASTNode)a);
         RESULT = llamadaFuncion;
     :}
-    | lectura
-    | escritura 
+    | lectura:l {:
+        ASTNode lectura = new ASTNode("lectura", l);
+        RESULT = lectura;
+    :}
+    | escritura:e{:
+        ASTNode escritura = new ASTNode("escritura", e);
+        RESULT = escritura;
+    :}
     ;
 
 
@@ -584,30 +673,46 @@ sentencia ::=
     ;
 
 
-bloque ::= sentencia:s {:
+bloque ::= 
+    sentencia:s {:
         ASTNode res = new ASTNode("bloque");
         res.addChild((ASTNode)s);
         RESULT = res;
     :}
     | bloque:b sentencia:s {:
-       System.out.println("bloque");
-    ASTNode res = new ASTNode("bloque");
-    ASTNode bNode = (ASTNode)b;
-    for(ASTNode child : bNode.getChildren()){
-        res.addChild(child);
-    }
-    res.addChild((ASTNode)s);
-    RESULT = res;
-:}
+        System.out.println("bloque");
+        ASTNode res = new ASTNode("bloque");
+        ASTNode bNode = (ASTNode)b;
+        for(ASTNode child : bNode.getChildren()){
+            res.addChild(child);
+        }
+        res.addChild((ASTNode)s);
+        RESULT = res;
+    :}
     ;
 
 
-parametros ::= tipo:t IDENTIFIER:i {: listaParametros.addParameter(new ElementoTabla(i,(String) t));:}
-    | parametros:p COMA tipo:t IDENTIFIER:i {:listaParametros.addParameter(new ElementoTabla(i,(String) t));:}
+parametros ::= 
+    tipo:t IDENTIFIER:i {: 
+        listaParametros.addParameter(new ElementoTabla(i,(String) t));
+        ASTNode res = new ASTNode("parametros");
+        res.addChild(new ASTNode((String)t,(String)i));
+        RESULT = res;
+    :}
+    | parametros:p COMA tipo:t IDENTIFIER:i {:
+        listaParametros.addParameter(new ElementoTabla(i,(String) t));
+        ASTNode res = new ASTNode("parametros");
+        ASTNode bNode = (ASTNode)p;
+        for(ASTNode child : bNode.getChildren()){
+            res.addChild(child);
+        }
+        res.addChild(new ASTNode((String)t,(String)i));
+        RESULT = res;
+    :}
     ;
 
 
-declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros RPAREN LBRACE bloqueFunc RBRACE 
+declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:b RBRACE 
     {:
         Boolean existe = false;
         for (Funcion f : functions) {
@@ -638,7 +743,11 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros RPAREN LBRACE bloqueFun
         }
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
-       
+        ASTNode main = new ASTNode("declaraFuncion",e);
+        main.addChild((ASTNode) p);
+        main.addChild((ASTNode) b);
+        main.addChild(new ASTNode("dataType",t));
+        RESULT = main; 
     :}
 
     | tipo:t IDENTIFIER:e LPAREN RPAREN LBRACE bloque:b RBRACE
@@ -673,7 +782,10 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros RPAREN LBRACE bloqueFun
         }
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
-       
+        ASTNode main = new ASTNode("declaraFuncion",e);
+        main.addChild((ASTNode) b);
+        main.addChild(new ASTNode("dataType",t));
+        RESULT = main; 
     :};
 
 
@@ -786,7 +898,12 @@ setValorArray ::= getValorArray:e ASIG expresion:ex{:
    ;
 
 
-lectura ::= LEER LPAREN numerico RPAREN ;
+lectura ::= 
+    LEER LPAREN numerico:n RPAREN{:
+        RESULT = n;
+    :} 
+    ;
+
 
 
 numerico ::= LITERAL_INT:e {:
@@ -806,6 +923,8 @@ numerico ::= LITERAL_INT:e {:
     ;
 
 
-escritura ::= ESCRIBIR LPAREN expresion RPAREN ; 
+escritura ::= ESCRIBIR LPAREN expresion:e RPAREN{:
+        RESULT = e;
+    :} ; 
 
 
