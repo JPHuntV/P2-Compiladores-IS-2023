@@ -5,4 +5,6 @@ public class main {
         app.analizar("programa/src/test.txt");//lexer
         app.parsear("programa/src/test.txt");//parser
     }
+
+   
 }

@@ -60,6 +60,52 @@ parser code {:
         return errores;
     }
 
+//########################################################################
+
+
+    public boolean checkDeclaraVar(String tipo, ASTNode node){
+        String valor = node.getChildren().get(0).getType();
+        System.out.println("testing ,"+tipo+",    "+valor);
+        switch (valor) {
+            case "literal_int":
+                return tipo.equals("int");
+            case "literal_bool":
+                return tipo.equals("bool");
+            case "literal_string":
+                return tipo.equals("String");
+            case "literal_float":
+                return tipo.equals("float");
+            case "literal_char":
+                return tipo.equals("char");
+            case "IDENTIFIER":
+                String varName = node.getChildren().get(0).getChildren().get(0).getType();
+                String varTipo = simboloValido(varName);
+                return tipo.equals(varTipo);
+            default:
+                // Handle unsupported type
+                return false;
+        }
+    }
+    public String simboloValido(String varName){ 
+        System.out.println(varName);
+        String varTipo = listaParametros.existe(varName);
+        String varTipo1 = listaVariables.existe(varName);
+        System.out.println("---------------");
+        System.out.println(varTipo);
+        System.out.println(varTipo1);
+        if(varTipo != null){
+            return varTipo;
+        }    
+        else if(varTipo1 != null){
+            return varTipo1;
+        }else{
+            System.out.println("Error: "+varName+" no coincide con ningun simbolo declarado previamente");
+            return null;
+        }
+
+    }
+
+
     //instancia del analizador lexico creado en jflex
     Analizador s;
     parser(Analizador s){ this.s=s; }
@@ -167,6 +213,7 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
             for (ElementoTabla par : listaVariables.getParams()) {
                 if (symbolTable.containsSymbol( par.getName())) {
                     System.out.println("El simbolo " +  par.getName() + " ya fue declarado en esta función");
+                    
                     errores = true;
                 }else{
                     symbolTable.addSymbol(par.getName(), par.getType());
@@ -204,12 +251,14 @@ funciones ::= funciones:f declaraFuncion:d {:
 
 
 expresion ::= expresionLogica:e {:
-        ((ASTNode)e).setType("init");
-        RESULT = (ASTNode)e;
+        ASTNode res = new ASTNode("init");
+        res.addChild((ASTNode)e);
+        RESULT = res;
     :}
     |expresionAritmetica:e {:
-        ((ASTNode)e).setType("init");
-        RESULT = (ASTNode)e;
+        ASTNode res = new ASTNode("init");
+        res.addChild((ASTNode)e);
+        RESULT = res;
     :}
     ;
 
@@ -283,13 +332,14 @@ operadorLogico ::= AND:e {:RESULT = e;:}
     ;
 
 
+
 expresionAritmetica ::= operandoArit:e {:
         RESULT =(ASTNode)e;
     :}
     | expresionAritmetica:ex operadorArit:op operandoArit:e {:
-        ASTNode expresionBinaria = new ASTNode("tipo","expresionBinaria");
+        ASTNode expresionBinaria = new ASTNode("tipo","expresionAritmetica");
         ASTNode operador = new ASTNode("operador",op);
-        ASTNode res = new ASTNode("res");
+        ASTNode res = new ASTNode("expresionBinaria");
         res.addChild((ASTNode)expresionBinaria);
         res.addChild((ASTNode)operador);
         res.addChild((ASTNode)ex);
@@ -338,14 +388,14 @@ terminoLogico ::= LITERAL_BOOL:b {:
         RESULT = (literal_bool);
     :}
     | LPAREN expresionRelacional:r RPAREN {:
-        ASTNode expresionRelacional = new ASTNode("expresionRelacional");
+        ASTNode expresionRelacional = new ASTNode("expresionBinaria");
         expresionRelacional.addChild((ASTNode)r);
         RESULT = expresionRelacional;
     :}
     | expresionRelacional:r {:
-        System.out.println("expresionRelacional");
+        System.out.println("expresionBinaria");
         System.out.println(r);
-        ASTNode expresionRelacional = new ASTNode("expresionRelacional");
+        ASTNode expresionRelacional = new ASTNode("expresionBinaria");
         expresionRelacional.addChild((ASTNode)r);
         RESULT = expresionRelacional;
     :}
@@ -410,7 +460,7 @@ operandoArit ::=
         RESULT = e;
     :}
     | getValorArray:e {:
-        RESULT = e;
+        RESULT = ((ASTNode)e).getChildren().get(0);
     :}
     | LPAREN expresionAritmetica:e RPAREN {:
         RESULT = e;
@@ -847,7 +897,14 @@ declaraVarNoAsig ::=
 
 declaraVar ::= 
        INT:t IDENTIFIER:i ASIG expresion:e {:
-           listaVariables.addParameter(new ElementoTabla(i,(String) t));
+
+            System.out.println("tipo variable: "+t);
+            System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
+            if(checkDeclaraVar(t,(ASTNode)e)){
+                listaVariables.addParameter(new ElementoTabla(i,(String) t));
+            }else{
+                System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
+            }
            ASTNode declaraVar = new ASTNode("declaraVar", i);
            declaraVar.addChild( new ASTNode("dataType", t) );
            declaraVar.addChild( (ASTNode)e);
@@ -856,7 +913,13 @@ declaraVar ::=
        :}  
     |
     CHAR:t IDENTIFIER:i  ASIG expresion:e {:
-           listaVariables.addParameter(new ElementoTabla(i,(String) t));
+           System.out.println("tipo variable: "+t);
+            System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
+            if(checkDeclaraVar((String)t,(ASTNode)e)){
+                listaVariables.addParameter(new ElementoTabla(i,(String) t));
+            }else{
+                System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
+            }
            ASTNode declaraVar = new ASTNode("declaraVar", i);
            declaraVar.addChild( new ASTNode("dataType", t) );
            declaraVar.addChild( (ASTNode)e);
@@ -865,10 +928,15 @@ declaraVar ::=
     | declaraArray:d ASIG LBRACKET array:e RBRACKET{:
            ((ASTNode)d).addChild( (ASTNode)e);
            RESULT = (ASTNode)d;
-
        :}
     | tipo:t IDENTIFIER:i ASIG expresion:e {:
-           listaVariables.addParameter(new ElementoTabla(i,(String) t));
+           System.out.println("tipo variable: "+t);
+            System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
+            if(checkDeclaraVar((String)t,(ASTNode)e)){
+                listaVariables.addParameter(new ElementoTabla(i,(String) t));
+            }else{
+                System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
+            }
            ASTNode declaraVar = new ASTNode("declaraVar", i);
            declaraVar.addChild( new ASTNode("dataType", t) );
            declaraVar.addChild( (ASTNode)e);
@@ -901,7 +969,10 @@ setValorArray ::= getValorArray:e ASIG expresion:ex{:
 lectura ::= 
     LEER LPAREN numerico:n RPAREN{:
         RESULT = n;
-    :} 
+    :}
+    | LEER LPAREN IDENTIFIER:n RPAREN{:
+        RESULT = n;
+    :}
     ;
 
 

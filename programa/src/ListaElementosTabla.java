@@ -16,6 +16,18 @@ public class ListaElementosTabla {
         params.add(param);
     }
 
+    public String existe(String nombre){
+        for (ElementoTabla elementoTabla : params) {
+            System.out.println("-------------------------");
+            System.out.println(nombre);
+            System.out.println(elementoTabla.getName());
+            if(nombre.equals(elementoTabla.getName())){
+                System.out.println(elementoTabla.getType());
+                return elementoTabla.getType();
+            }
+        }
+        return null;
+    }
     public List<ElementoTabla> getParams() {
         return params;
     }

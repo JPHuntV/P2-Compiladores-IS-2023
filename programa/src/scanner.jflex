@@ -114,7 +114,7 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "not"           {return symbol(NOT, yytext()); }
     "int"           {return symbol(INT,yytext()); }
     "float"         {return symbol(FLOAT,yytext()); }
-    "string"        {return symbol(STRING,yytext()); }
+    "String"        {return symbol(STRING,yytext()); }
     "char"          {return symbol(CHAR,yytext()); }
     "array"         {return symbol(ARRAY,yytext()); }
     "bool"          {return symbol(BOOL,yytext()); }

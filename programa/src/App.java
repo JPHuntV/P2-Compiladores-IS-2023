@@ -73,6 +73,7 @@ public class App {
                             String tipo = entry.getValue();
                             writer.write("\tvalor: "+valor+"    tipo: "+tipo+"\n");
                             System.out.println("\tvalor: "+valor+"    tipo: "+tipo);
+                            
                         }
                     }
                 }
@@ -88,5 +89,6 @@ public class App {
             System.out.println("El archivo no puede ser generado ya que se han reportado errores");
         }
     }
+    
 }
     
