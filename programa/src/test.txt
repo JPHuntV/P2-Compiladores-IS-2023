@@ -1,36 +1,24 @@
+
+int aa(){
+	return 1$
+}
+int as(){
+	return 1$
+}
+
 int main(){
-/_
-Comentario 1
-_/
-	char miChar = '!'$
-	string str1 = "Mi string 1"$
-	float fl1 = 4.4$
-	int in1 = --fl1 * -14 / ++in1 + 7 - 15$
-	float fl2 = 3.7 ** fl1 + (45.6 ~ 76.8)$
-	int arr[10]$
-	char arr2[3]$
-
-@comentario 2
-
-	arr[0] = 5 * 5$
-	arr[1] = 10 - arr[0] * miFunc (hola, true, "hola mundo", 4.5, 'a')$
-	fl1 = 4.5~miChar**-0.005$
-	miFunc (hola, 'a')$
-	bool bl0 = 6.7 != 8.9$
-	@bool bl1 = in1 >= fl1 # false ^ not(func1(3,miVar) > 56)$
-	return bl1$
+	@char a = 4.3$
+	@int i = 'a'$
+	@int ii = "aa"$
+	@int iii = 2.1$
+	@int iiiii = 3$
+	@int aa = 2$
+	@int iiiiii = aa$
+	int iiiiiii = aa()$
+	@int iiiiiiia = [2,3,4,5,6]$
+	@int iiiiiia = a[2]$
+	@int iiiiia = 2+5$
+	@int iiiia = 2>5$
+	@int iiia = true$
 }
 
-
-float miOtraFun(){
-	char x22 ='2'$
-	if ((x22 <= 45) # (var > 5.6)){
-		x22 = 10$
-		char ch33 = 'a'$
-	}else
-	{
-		string str2 = "sdff"$
-	}
-
-	return -5.6$
-}

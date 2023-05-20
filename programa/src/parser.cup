@@ -81,6 +81,21 @@ parser code {:
                 String varName = node.getChildren().get(0).getChildren().get(0).getType();
                 String varTipo = simboloValido(varName);
                 return tipo.equals(varTipo);
+            case "llamaFuncion":
+                System.out.println("=========================");
+                String funName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
+                for(SymbolTable tabla : symbolTables.getStack()){
+                    String tableName = tabla.getName();
+                    System.out.println(funName);
+                    System.out.println(tableName);
+                    if(funName.equals(tableName)){
+                        String tableType = tabla.getTipoRetorno();
+                        System.out.println(tableType);
+                        return tipo.equals(tableType);
+                    }
+                    
+                }
+                return false;
             default:
                 // Handle unsupported type
                 return false;
