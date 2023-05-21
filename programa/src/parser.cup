@@ -78,29 +78,71 @@ parser code {:
             case "literal_char":
                 return tipo.equals("char");
             case "IDENTIFIER":
-                String varName = node.getChildren().get(0).getChildren().get(0).getType();
+                String varName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
                 return tipo.equals(varTipo);
             case "llamaFuncion":
-                System.out.println("=========================");
                 String funName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
-                for(SymbolTable tabla : symbolTables.getStack()){
-                    String tableName = tabla.getName();
-                    System.out.println(funName);
-                    System.out.println(tableName);
-                    if(funName.equals(tableName)){
-                        String tableType = tabla.getTipoRetorno();
-                        System.out.println(tableType);
-                        return tipo.equals(tableType);
-                    }
-                    
-                }
-                return false;
+                ArrayList<ASTNode> funArg = new ArrayList<>();
+                if(node.getChildren().get(0).getChildren().size()>1)
+                    funArg = node.getChildren().get(0).getChildren().get(1).getChildren();
+                return funcionValida(funName, tipo, funArg );
+
+                
+            case "expresionBinaria":
+                return checkExpresion(node.getChildren().get(0));
+
             default:
                 // Handle unsupported type
                 return false;
         }
     }
+
+    public boolean checkExpresion(ASTNode node){
+        System.out.println("+++++++++++++++++++++++++++++++");
+        ArrayList<ASTNode> hijos = node.getChildren();
+        System.out.println(hijos.get(0));
+        System.out.println(hijos.get(1));
+        System.out.println(hijos.get(2));
+        System.out.println(hijos.get(3));
+
+        ASTNode left = (ASTNode) hijos.get(2).getValue();
+        System.out.println(left.getType());
+
+        ASTNode right = (ASTNode) hijos.get(3).getValue();
+        System.out.println(right.getType());
+
+        switch(left.getType()){
+            case "literal_int":
+                switch(right.getType()){
+                    case "literal_int":
+                        return true;
+                    case "IDENTIFIER":
+                        String varName = right.getChildren().get(0).getValue().toString();
+                        String varTipo = simboloValido(varName);
+                        System.out.println("vartipo: "+varTipo);
+                        return varTipo.equals("int");
+                    case "llamaFuncion":
+
+                        String funName = right.getChildren().get(0).getValue().toString();
+                        System.out.println("llamando a funcion : "+funName);
+                        ArrayList<ASTNode> funArg = new ArrayList<>();
+                        if(right.getChildren().size()>1)
+                            funArg = right.getChildren().get(1).getChildren();
+                        System.out.println(funArg.toString());
+                        System.out.println(funArg.size());
+                        return funcionValida(funName, "int", funArg);
+                    default:
+                        return false;
+                }   
+
+            default:
+                System.out.println("+++++++++++++++++++++++++++++++");
+                return false;
+        }
+    }
+
+
     public String simboloValido(String varName){ 
         System.out.println(varName);
         String varTipo = listaParametros.existe(varName);
@@ -117,7 +159,75 @@ parser code {:
             System.out.println("Error: "+varName+" no coincide con ningun simbolo declarado previamente");
             return null;
         }
+    }
 
+    public boolean funcionValida(String funName, String tipo, ArrayList<ASTNode> argumentos){
+        for (Funcion f : functions) {
+            if (f.getName().equals(funName) && f.getTipoRetorno().equals(tipo)) {
+                System.out.println(funName);
+                int i = 0;
+                List<ElementoTabla> parametros = f.getParameters();
+                if(parametros.size()==argumentos.size()){//la funcion y su llamada tienen la misma cantidad de parametros
+                    boolean res = true;
+                    for(ElementoTabla e : parametros){
+                        Object valorArg = argumentos.get(i).getValue();
+                        String tipoArg = argumentos.get(i).getType();
+                        System.out.println(e.getType()+"===="+e.getName()+"======");
+                        System.out.println("===="+tipoArg+"======"+valorArg.toString());
+                        switch(tipoArg){
+                            case "IDENTIFIER":
+                                String varTipo = simboloValido(valorArg.toString());
+                                System.out.println("vartipo: "+varTipo);
+                                res = varTipo.equals(e.getType()); 
+                                break;
+                            case "literal_string":
+                                res = e.getType().equals("String");
+                                break;
+                            case "literal_int":
+                                res = e.getType().equals("int");
+                                break;
+                            case "literal_float":
+                                res = e.getType().equals("float");
+                                break;
+                            case "literal_char":
+                                res = e.getType().equals("char");
+                                break;
+                            case "llamaFuncion":
+                                String funNameNest = ((ASTNode)valorArg).getChildren().get(0).getValue().toString();
+                                System.out.println("llamando a funcion : "+funNameNest);
+                                ArrayList<ASTNode> funArg = new ArrayList<>();
+                                if(((ASTNode)valorArg).getChildren().size()>1)
+                                    funArg = ((ASTNode)valorArg).getChildren().get(1).getChildren();
+                                System.out.println(funArg.toString());
+                                System.out.println(funArg.size());
+                                res = funcionValida(funNameNest, e.getType(), funArg);
+                                break;
+                            default:
+                                res = false;
+                                break;
+                        }
+                        i++;
+                    }
+                    return res;
+                }
+                return false;
+
+            }
+        }
+        return false;
+//for (ElementoTabla param : listaParametros.getParams()) {
+//               symbolTable.addSymbol(param.getName(), param.getType());
+//           }
+//
+//
+//       for(SymbolTable tabla : symbolTables.getStack()){
+//           String tableName = tabla.getName();
+//           if(funName.equals(tableName)){
+//               String tableType = tabla.getTipoRetorno();
+//               return tipo.equals(tableType);
+//           }
+//       }
+//       return false;
     }
 
 
@@ -163,7 +273,7 @@ precedence left expresionRelacional;
 start with inicio;
 
 inicio ::= programa:e {:
-        System.out.println("El programa ha sido parseado de manera exitosa");
+        System.out.println("### Parseo finalizado ###");
         ASTNode inicio = new ASTNode("inicio");
         inicio.addChild((ASTNode)e);
         RESULT = inicio;
@@ -357,8 +467,8 @@ expresionAritmetica ::= operandoArit:e {:
         ASTNode res = new ASTNode("expresionBinaria");
         res.addChild((ASTNode)expresionBinaria);
         res.addChild((ASTNode)operador);
-        res.addChild((ASTNode)ex);
-        res.addChild((ASTNode)e);
+        res.addChild(new ASTNode("left",(ASTNode)ex));
+        res.addChild(new ASTNode("right",(ASTNode)e));
         RESULT = res;
     :}
    
@@ -369,10 +479,12 @@ expresionAritmetica ::= operandoArit:e {:
 
 
 expresionRelacional ::= operandoRel:a opRelacional:op operandoRel:b {:
-    ASTNode res = new ASTNode("tipo","expresionRelacional");
+    ASTNode expresionBinaria = new ASTNode("tipo","expresionRelacional");
+    ASTNode res = new ASTNode("expresionBinaria");
+    res.addChild((ASTNode)expresionBinaria);
     res.addChild(new ASTNode("operador",op));
-    res.addChild((ASTNode)a);
-    res.addChild((ASTNode)b);
+    res.addChild(new ASTNode("left",(ASTNode)a));
+    res.addChild(new ASTNode("right",(ASTNode)b));
     RESULT = res;
 :}
 
@@ -387,12 +499,12 @@ expresionLogica ::= terminoLogico:t {:
         RESULT = (ASTNode)t;
     :}
     | expresionLogica:ex operadorLogico:op terminoLogico:e{:
-        ASTNode res = new ASTNode("res");
-        res.addChild(new ASTNode("tipo","expresionLogica"));
-        res.addChild(new ASTNode("operador",op));
-        res.addChild((ASTNode)ex);
-        res.addChild((ASTNode)e);
-        RESULT = res;
+        ASTNode expresionBinaria = new ASTNode("expresionBinaria");
+        expresionBinaria.addChild(new ASTNode("tipo","expresionLogica"));
+        expresionBinaria.addChild(new ASTNode("operador",op));
+        expresionBinaria.addChild(new ASTNode("left",(ASTNode)ex));
+        expresionBinaria.addChild(new ASTNode("right",(ASTNode)e));
+        RESULT = expresionBinaria;
     :}
     ;
 
@@ -405,14 +517,14 @@ terminoLogico ::= LITERAL_BOOL:b {:
     | LPAREN expresionRelacional:r RPAREN {:
         ASTNode expresionRelacional = new ASTNode("expresionBinaria");
         expresionRelacional.addChild((ASTNode)r);
-        RESULT = expresionRelacional;
+        RESULT = (ASTNode)r;
     :}
     | expresionRelacional:r {:
         System.out.println("expresionBinaria");
         System.out.println(r);
         ASTNode expresionRelacional = new ASTNode("expresionBinaria");
         expresionRelacional.addChild((ASTNode)r);
-        RESULT = expresionRelacional;
+        RESULT = (ASTNode)r;
     :}
     | NOT:op terminoLogico:t{:
         ASTNode notOp = new ASTNode("notOp");
@@ -429,7 +541,7 @@ operandoArit ::=
         System.out.println("IDENTIFIER");
         System.out.println(e);
         ASTNode IDENTIFIER = new ASTNode("IDENTIFIER");
-        IDENTIFIER.addChild(new ASTNode(e));
+        IDENTIFIER.addChild(new ASTNode("valor",e));
         RESULT = IDENTIFIER;
     :}
     | LITERAL_STRING:e {:
@@ -463,9 +575,8 @@ operandoArit ::=
     | llamaFuncion:e{:
         System.out.println("llamaFuncion");
         System.out.println(e);
-        ASTNode llamaFuncion = new ASTNode("llamaFuncion");
-        llamaFuncion.addChild((ASTNode)e);
-        RESULT = llamaFuncion;
+        ((ASTNode)e).setType("llamaFuncion");
+        RESULT = ((ASTNode)e);
     :}   
     | operadorUnario:e{:
         ((ASTNode)e).setType("operadorUnario");
@@ -494,12 +605,12 @@ operandoRel ::= operandoArit:e {:RESULT = e;:}
     ;
 
 
-literales ::= LITERAL_INT:e {:RESULT = e;:}
-    |LITERAL_FLOAT:e {:RESULT = e;:}
-    |LITERAL_BOOL:e {:RESULT = e;:}
-    |LITERAL_STRING:e {:RESULT = e;:}
-    |LITERAL_CHAR:e {:RESULT = e;:}
-    |LBRACKET array:e RBRACKET {:RESULT = e;:}
+literales ::= LITERAL_INT:e {:RESULT = new ASTNode("literal_int",e);:}
+    |LITERAL_FLOAT:e {:RESULT = new ASTNode("literal_float",e);:}
+    |LITERAL_BOOL:e {:RESULT = new ASTNode("literal_bool",e);:}
+    |LITERAL_STRING:e {:RESULT = new ASTNode("literal_string",e);:}
+    |LITERAL_CHAR:e {:RESULT = new ASTNode("literal_char",e);:}
+    |LBRACKET array:e RBRACKET {:RESULT = new ASTNode("array",e);:}
     ;
 
 
@@ -641,14 +752,17 @@ break ::= BREAK:r //{:    :}
 ;
 
 
-argumento ::= IDENTIFIER:e {:RESULT = e;:}
+argumento ::= IDENTIFIER:e {:RESULT = new ASTNode("IDENTIFIER",e);:}
     | literales:e {:RESULT = e;:}
+    | llamaFuncion:e {:
+        ((ASTNode)e).setType("funcion");
+        RESULT = new ASTNode("llamaFuncion",((ASTNode)e));:}
     ;
 
 
 argumentos ::= argumento:a {:
         ASTNode res = new ASTNode("argumentos");
-        res.addChild(new ASTNode((String)a));
+        res.addChild((ASTNode)a);
         RESULT = res;
     :}
     | argumentos:a COMA argumento:e {:
@@ -657,28 +771,38 @@ argumentos ::= argumento:a {:
         for(ASTNode child : bNode.getChildren()){
             res.addChild(child);
         }
-        res.addChild(new ASTNode((String)e));
+        res.addChild((ASTNode)e);
         RESULT = res;
     :}
     ;
 
 
 llamaFuncion ::= IDENTIFIER:e  LPAREN RPAREN {:
-        ASTNode llamadaFuncion = new ASTNode("llamadaFuncion", e);
-        RESULT = llamadaFuncion;
+        ASTNode res = new ASTNode("res");
+        ASTNode llamadaFuncion = new ASTNode("nombre", e);
+        res.addChild(llamadaFuncion);
+        RESULT = res;
     :}
     | IDENTIFIER:e LPAREN argumentos:a RPAREN {:
-        ASTNode llamadaFuncion = new ASTNode("llamadaFuncion", e);
-        llamadaFuncion.addChild((ASTNode)a);
-        RESULT = llamadaFuncion;
+        ASTNode res = new ASTNode("res");
+        ASTNode llamadaFuncion = new ASTNode("nombre", e);
+        res.addChild(llamadaFuncion);
+        res.addChild((ASTNode)a);
+        RESULT = res;
     :}
     | lectura:l {:
-        ASTNode lectura = new ASTNode("lectura", l);
-        RESULT = lectura;
+        ASTNode res = new ASTNode("res");
+        ASTNode lectura = new ASTNode("nombre","lectura");
+        res.addChild(lectura);
+        res.addChild((ASTNode)l);
+        RESULT = res;
     :}
     | escritura:e{:
-        ASTNode escritura = new ASTNode("escritura", e);
-        RESULT = escritura;
+        ASTNode res = new ASTNode("res");
+        ASTNode escritura = new ASTNode("nombre","escritura");
+        res.addChild(escritura);
+        res.addChild((ASTNode)e);
+        RESULT = res;
     :}
     ;
 
@@ -779,6 +903,9 @@ parametros ::=
 
 declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:b RBRACE 
     {:
+        System.out.println("=========================================");
+        System.out.println(b.toString());
+        System.out.println("=========================================");
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
