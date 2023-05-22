@@ -1,24 +1,31 @@
 
-int aa(){
-	return 1$
-}
-int as(){
-	return 1$
+int aa(char as){
+	int a = 4$
+	int aa = 4$
+	return a$
 }
 
+int as(int argA, String argb, int argFun){
+	return 1$
+}
 int main(){
-	@char a = 4.3$
+	int a = 4$
 	@int i = 'a'$
 	@int ii = "aa"$
 	@int iii = 2.1$
 	@int iiiii = 3$
 	@int aa = 2$
 	@int iiiiii = aa$
-	int iiiiiii = aa()$
+	@char iiiiiii = aa()$
 	@int iiiiiiia = [2,3,4,5,6]$
 	@int iiiiiia = a[2]$
-	@int iiiiia = 2+5$
+
+	int test = "a" + "b"$
+	@int iiiiia = 2+as(2,a,"sdf")$
+	@int nuevo  =  2+ iiiiia$
 	@int iiiia = 2>5$
+	@int asd = true ^ false$
 	@int iiia = true$
+	return 1$
 }
 

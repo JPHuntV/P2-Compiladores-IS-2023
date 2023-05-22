@@ -40,6 +40,23 @@ public class ASTNode {
         return children;
     }
 
+    public boolean navigateAST() {
+        return navigateASTNode(this);
+    }
+
+    private boolean navigateASTNode(ASTNode node) {
+        if(node.type.equals("returnStm")){
+            return true;
+        }
+        for (ASTNode child : node.children) {
+            if(navigateASTNode(child)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(type);

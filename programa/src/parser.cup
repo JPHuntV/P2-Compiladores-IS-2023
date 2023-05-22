@@ -86,11 +86,17 @@ parser code {:
                 ArrayList<ASTNode> funArg = new ArrayList<>();
                 if(node.getChildren().get(0).getChildren().size()>1)
                     funArg = node.getChildren().get(0).getChildren().get(1).getChildren();
-                return funcionValida(funName, tipo, funArg );
+                if(!funcionValida(funName, tipo, funArg).equals("invalida")){
+                    return true;
+                }else{
+                    return false;
+                }
 
                 
             case "expresionBinaria":
-                return checkExpresion(node.getChildren().get(0));
+                String valida = checkExpresion(node.getChildren().get(0));
+                
+                return tipo.equals(valida);
 
             default:
                 // Handle unsupported type
@@ -98,7 +104,7 @@ parser code {:
         }
     }
 
-    public boolean checkExpresion(ASTNode node){
+    public String checkExpresion(ASTNode node){ //operandos izquierdos
         System.out.println("+++++++++++++++++++++++++++++++");
         ArrayList<ASTNode> hijos = node.getChildren();
         System.out.println(hijos.get(0));
@@ -112,37 +118,150 @@ parser code {:
         ASTNode right = (ASTNode) hijos.get(3).getValue();
         System.out.println(right.getType());
 
+        String tipoOp = right.getType();
         switch(left.getType()){
             case "literal_int":
-                switch(right.getType()){
-                    case "literal_int":
-                        return true;
-                    case "IDENTIFIER":
-                        String varName = right.getChildren().get(0).getValue().toString();
-                        String varTipo = simboloValido(varName);
-                        System.out.println("vartipo: "+varTipo);
-                        return varTipo.equals("int");
-                    case "llamaFuncion":
+                if(tipoOp.equals("literal_int")){
+                    return "int";
+                }
+                else{
+                    if(checkExpresionAux(right, "int")){
+                        return "int";
+                    }
+                    else{
+                        return "invalida";
+                    }
+                }
+            case "literal_string":
+                if(tipoOp.equals("literal_string") || tipoOp.equals("literal_char")){
+                    return "String";
+                }
+                else{
+                    if(checkExpresionAux(right, "String") || checkExpresionAux(right, "char")){
+                        return "String";
+                    }
+                    else{
+                        return "invalida";
+                    }
+                }
+            case "literal_float":
+                if(tipoOp.equals("literal_int") || tipoOp.equals("literal_float")){
+                    return "float";
+                }
+                else{
+                    if(checkExpresionAux(right, "int") || checkExpresionAux(right, "float")){
+                        return "float";
+                    }
+                    else{
+                        return "invalida";
+                    }
+                }
+            case "literal_char":
+                if(tipoOp.equals("literal_char")){
+                    return "char";
+                }
+                else{
+                    if(checkExpresionAux(right, "char")){
+                        return "char";
+                    }
+                    else{
+                        return "invalida";
+                    }
+                }
+            case "IDENTIFIER":
+                String varName = left.getChildren().get(0).getValue().toString();
+                String varTipo = simboloValido(varName);
+                System.out.println("vartipo: "+varTipo);
+                if(checkExpresionAux(right, varTipo)){
+                        return varTipo;
+                }
+                else{
+                    return "invalida";
+                }
+            case "llamaFuncion":
+                String funName = left.getChildren().get(0).getValue().toString();
+                System.out.println("llamando a funcion : "+funName);
+                ArrayList<ASTNode> funArg = new ArrayList<>();
+                if(left.getChildren().size()>1)
+                    funArg = left.getChildren().get(1).getChildren();
+                System.out.println(funArg.toString());
+                System.out.println(funArg.size());
+                String tipoFuncion = funcionValida(funName, "getTipo", funArg);
+                System.out.println("Tipo recibido de funcion: "+tipoFuncion);
+                if(checkExpresionAux(right, tipoFuncion)){
+                        return tipoFuncion;
+                }else{
+                    return "invalida";
+                }
 
-                        String funName = right.getChildren().get(0).getValue().toString();
-                        System.out.println("llamando a funcion : "+funName);
-                        ArrayList<ASTNode> funArg = new ArrayList<>();
-                        if(right.getChildren().size()>1)
-                            funArg = right.getChildren().get(1).getChildren();
-                        System.out.println(funArg.toString());
-                        System.out.println(funArg.size());
-                        return funcionValida(funName, "int", funArg);
-                    default:
-                        return false;
-                }   
+            case "expresionBinaria":
+                System.out.println("me encontre una bin");
+                if(left.getChildren().get(0).getValue().toString().equals("expresionAritmetica")){
+                    System.out.println("me encontre una aritmetica");
+                    String tipoExp = checkExpresion(left);
+                    System.out.println(tipoExp);
+                    if(checkExpresionAux(right, tipoExp)){
+                        return tipoExp;
+                    }else{
+                        return "invalida";
+                    }
 
+                }else{
+                    System.out.println("me encontre una boolean");
+                    return "invalida";
+                }
             default:
                 System.out.println("+++++++++++++++++++++++++++++++");
-                return false;
+                return "invalida";
         }
     }
 
+    public boolean checkExpresionAux(ASTNode right, String tipoCheck){
+        String tipoOp = right.getType();
+        switch(tipoOp){
+            case "literal_int":
+                return tipoCheck.equals("int");
+            case "literal_bool":
+                return tipoCheck.equals("bool");
+            case "literal_string":
+                return tipoCheck.equals("String")|| tipoCheck.equals("char");
+            case "literal_float":
+                return tipoCheck.equals("float") || tipoCheck.equals("int");
+            case "literal_char":
+                return tipoCheck.equals("char");
+            case "IDENTIFIER":
+                String varName = right.getChildren().get(0).getValue().toString();
+                String varTipo = simboloValido(varName);
+                System.out.println("vartipo: "+varTipo);
+                return varTipo.equals(tipoCheck);
+            case "llamaFuncion":
+                String funName = right.getChildren().get(0).getValue().toString();
+                System.out.println("llamando a funcion : "+funName);
+                ArrayList<ASTNode> funArg = new ArrayList<>();
+                if(right.getChildren().size()>1)
+                    funArg = right.getChildren().get(1).getChildren();
+                System.out.println(funArg.toString());
+                System.out.println(funArg.size());
+                if(!funcionValida(funName, tipoCheck, funArg).equals("invalida")){
+                    return true;
+                }else{
+                    return false;
+                }
 
+            case "expresionBinaria":
+                System.out.println("right");
+                System.out.println(right.toString());
+                String tipoExp = checkExpresion(right);
+                System.out.println("expresion binaria derecha: "+tipoExp);
+                if(!tipoExp.equals("invalida")){
+                    return true;
+                }else{
+                    return false;
+                }
+            default:
+                return false;
+        }
+    }
     public String simboloValido(String varName){ 
         System.out.println(varName);
         String varTipo = listaParametros.existe(varName);
@@ -161,8 +280,11 @@ parser code {:
         }
     }
 
-    public boolean funcionValida(String funName, String tipo, ArrayList<ASTNode> argumentos){
+    public String funcionValida(String funName, String tipo, ArrayList<ASTNode> argumentos){
         for (Funcion f : functions) {
+            if(tipo.equals("getTipo")){
+                tipo = f.getTipoRetorno();
+            }
             if (f.getName().equals(funName) && f.getTipoRetorno().equals(tipo)) {
                 System.out.println(funName);
                 int i = 0;
@@ -200,7 +322,7 @@ parser code {:
                                     funArg = ((ASTNode)valorArg).getChildren().get(1).getChildren();
                                 System.out.println(funArg.toString());
                                 System.out.println(funArg.size());
-                                res = funcionValida(funNameNest, e.getType(), funArg);
+                                res = !funcionValida(funNameNest, e.getType(), funArg).equals("invalida");
                                 break;
                             default:
                                 res = false;
@@ -208,27 +330,17 @@ parser code {:
                         }
                         i++;
                     }
-                    return res;
+                    if(res)
+                    return tipo;
                 }
-                return false;
+                System.out.println("Error: "+funName + " esperaba " + parametros.size() + " argumentos pero " + argumentos.size() + " fueron recibidos");
+                return "invalida";
 
             }
         }
-        return false;
-//for (ElementoTabla param : listaParametros.getParams()) {
-//               symbolTable.addSymbol(param.getName(), param.getType());
-//           }
-//
-//
-//       for(SymbolTable tabla : symbolTables.getStack()){
-//           String tableName = tabla.getName();
-//           if(funName.equals(tableName)){
-//               String tableType = tabla.getTipoRetorno();
-//               return tipo.equals(tableType);
-//           }
-//       }
-//       return false;
+        return "invalida";
     }
+
 
 
     //instancia del analizador lexico creado en jflex
@@ -349,7 +461,9 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
         ASTNode main = new ASTNode("declaraFuncion","main");
-
+        if(!((ASTNode) d).navigateAST()){
+            System.out.println("main no tiene sentencia de retorno");
+        }
         main.addChild((ASTNode) d);
         main.addChild(new ASTNode("dataType",t));
         RESULT = main;    
@@ -936,6 +1050,9 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
         ASTNode main = new ASTNode("declaraFuncion",e);
+        if(!((ASTNode) b).navigateAST()){
+            System.out.println(e+" no tiene sentencia de retorno");
+        }
         main.addChild((ASTNode) p);
         main.addChild((ASTNode) b);
         main.addChild(new ASTNode("dataType",t));
@@ -975,6 +1092,9 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:
         listaVariables  = new ListaElementosTabla();
         listaParametros  = new ListaElementosTabla();
         ASTNode main = new ASTNode("declaraFuncion",e);
+        if(!((ASTNode) b).navigateAST()){
+            System.out.println(e+" no tiene sentencia de retorno");
+        }
         main.addChild((ASTNode) b);
         main.addChild(new ASTNode("dataType",t));
         RESULT = main; 
