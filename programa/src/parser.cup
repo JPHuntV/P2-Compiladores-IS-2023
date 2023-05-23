@@ -91,15 +91,10 @@ parser code {:
                 }else{
                     return false;
                 }
-
-                
             case "expresionBinaria":
                 String valida = checkExpresion(node.getChildren().get(0));
-                
                 return tipo.equals(valida);
-
             default:
-                // Handle unsupported type
                 return false;
         }
     }
@@ -168,6 +163,18 @@ parser code {:
                         return "invalida";
                     }
                 }
+            case "literal_bool":
+                if(tipoOp.equals("literal_bool")){
+                    return "bool";
+                }
+                else{
+                    if(checkExpresionAux(right, "bool")){
+                        return "bool";
+                    }
+                    else{
+                        return "invalida";
+                    }
+                }
             case "IDENTIFIER":
                 String varName = left.getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
@@ -208,7 +215,7 @@ parser code {:
 
                 }else{
                     System.out.println("me encontre una boolean");
-                    return "invalida";
+                    return "bool";
                 }
             default:
                 System.out.println("+++++++++++++++++++++++++++++++");
@@ -612,6 +619,7 @@ expresionLogica ::= terminoLogico:t {:
         terminoLogico.addChild((ASTNode)t);
         RESULT = (ASTNode)t;
     :}
+    
     | expresionLogica:ex operadorLogico:op terminoLogico:e{:
         ASTNode expresionBinaria = new ASTNode("expresionBinaria");
         expresionBinaria.addChild(new ASTNode("tipo","expresionLogica"));
@@ -620,6 +628,7 @@ expresionLogica ::= terminoLogico:t {:
         expresionBinaria.addChild(new ASTNode("right",(ASTNode)e));
         RESULT = expresionBinaria;
     :}
+    
     ;
 
 
@@ -627,11 +636,6 @@ terminoLogico ::= LITERAL_BOOL:b {:
         ASTNode literal_bool = new ASTNode("literal_bool");
         literal_bool.addChild(new ASTNode(b));
         RESULT = (literal_bool);
-    :}
-    | LPAREN expresionRelacional:r RPAREN {:
-        ASTNode expresionRelacional = new ASTNode("expresionBinaria");
-        expresionRelacional.addChild((ASTNode)r);
-        RESULT = (ASTNode)r;
     :}
     | expresionRelacional:r {:
         System.out.println("expresionBinaria");
@@ -647,6 +651,12 @@ terminoLogico ::= LITERAL_BOOL:b {:
         res.addChild(notOp);
         RESULT = (res);
     :}
+    | LPAREN expresionLogica:r RPAREN {:
+        ASTNode expresionLogica = new ASTNode("expresionBinaria");
+        expresionLogica.addChild((ASTNode)r);
+        RESULT = (ASTNode)r;
+    :}
+    
     ;
 
 
@@ -1233,7 +1243,17 @@ lectura ::=
         RESULT = n;
     :}
     | LEER LPAREN IDENTIFIER:n RPAREN{:
-        RESULT = n;
+        System.out.println("====================tipo id==================");
+        String tipoId = simboloValido(n);
+        System.out.println(tipoId);
+        System.out.println("======================================");
+        if(tipoId.equals("int") || tipoId.equals("float")){
+            ASTNode identifier = new ASTNode("IDENTIFIER");
+            identifier.addChild(new ASTNode(n));
+            RESULT = identifier;
+        }else{
+            System.out.println(n+" debe ser de tipo int o float pero es tipo "+ tipoId);
+        }
     :}
     ;
 
@@ -1257,7 +1277,26 @@ numerico ::= LITERAL_INT:e {:
 
 
 escritura ::= ESCRIBIR LPAREN expresion:e RPAREN{:
-        RESULT = e;
+        System.out.println("=================================###");
+        ASTNode nodoValor = ((ASTNode)e).getChildren().get(0);
+        System.out.println(nodoValor.getType());
+        String tipoNodo = nodoValor.getType();
+        System.out.println("++++"+tipoNodo);
+
+        if(tipoNodo.equals("literal_int") || tipoNodo.equals("literal_float") || tipoNodo.equals("literal_string")){
+            RESULT = e;
+        }else if(tipoNodo.equals("IDENTIFIER")){
+            String tipoId = simboloValido(nodoValor.getChildren().get(0).getValue().toString());    
+            System.out.println(tipoId);
+            System.out.println("==========================++++============");
+            if(tipoId.equals("int") || tipoId.equals("float") || tipoId.equals("String")){
+                RESULT = e;
+            }else{
+                System.out.println("=================================###"+tipoId);
+            }
+        }else{
+            System.out.println("escribir solo es compatible con int, float, y string");
+        }
     :} ; 
 
 
