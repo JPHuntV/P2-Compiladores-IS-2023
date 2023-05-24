@@ -934,6 +934,20 @@ public class parser extends java_cup.runtime.lr_parser {
             case "expresionBinaria":
                 String valida = checkExpresion(node.getChildren().get(0));
                 return tipo.equals(valida);
+            case "operadorUnario":
+                ASTNode opUnario = node.getChildren().get(0);
+                System.out.println(opUnario.toString());
+                String tipoOperando = opUnario.getChildren().get(0).getValue().toString();
+                switch(tipoOperando){
+                    case "IDENTIFIER":
+                        String idName = opUnario.getChildren().get(2).getValue().toString();
+                        String idTipo = simboloValido(idName);
+                        return tipo.equals(idTipo);
+                    case "expresionNumerica":
+                        return tipo.equals("int") || tipo.equals("float");
+                    default:
+                        return false;
+                }
             default:
                 return false;
         }
@@ -1373,7 +1387,7 @@ class CUP$parser$actions {
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t )){
-                System.out.println("La funcion "+ (String) t +"  " + e + " ya fue declarada");
+                System.out.println("Error: La funcion "+ (String) t +"  " + e + " ya fue declarada");
                 errores = true;
                 valida = false;
                 existe = true;
@@ -1390,7 +1404,7 @@ class CUP$parser$actions {
             }
             for (ElementoTabla par : listaVariables.getParams()) {
                 if (symbolTable.containsSymbol( par.getName())) {
-                    System.out.println("El simbolo " +  par.getName() + " ya fue declarado en esta función");
+                    System.out.println("Error: El simbolo " +  par.getName() + " ya fue declarado en esta función");
                     valida = false;
                     errores = true;
                 }else{
@@ -1402,7 +1416,7 @@ class CUP$parser$actions {
         
         ASTNode main = new ASTNode("declaraFuncion","main");
         if(!((ASTNode) d).navigateAST()){
-            System.out.println("main no tiene sentencia de retorno");
+            System.out.println("Error: main no tiene sentencia de retorno");
             valida = false;
         }
         if(!checkReturnsBloque((ASTNode)d)){
@@ -1410,10 +1424,7 @@ class CUP$parser$actions {
         }
         for (ASTNode ret : listaRetornos) {
             ASTNode nodoRet = ret.getChildren().get(0);
-            System.out.println("----retorno");
-            System.out.println("---===="+nodoRet);
             boolean validReturn = checkDeclaraVar((String)t, nodoRet);
-            System.out.println("---====######"+validReturn);
             if(!validReturn){
                 valida = false;
                 System.out.println("Error: El tipo de retorno de main no coincide con el valor retornado ");
@@ -1442,7 +1453,6 @@ class CUP$parser$actions {
 		int dright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("declaraFuncion");
         ASTNode res = new ASTNode("declaraFuncion");
         ASTNode bNode = (ASTNode)f;
         for(ASTNode child : bNode.getChildren()){
@@ -1661,7 +1671,7 @@ class CUP$parser$actions {
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","expresionNumerica");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -1685,7 +1695,7 @@ class CUP$parser$actions {
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -1709,7 +1719,7 @@ class CUP$parser$actions {
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -1733,7 +1743,7 @@ class CUP$parser$actions {
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -3109,7 +3119,7 @@ class CUP$parser$actions {
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
-                System.out.println("La funcion "+ (String) t +"  " + e + " ya fue declarada");
+                System.out.println("Error: La funcion "+ (String) t +"  " + e + " ya fue declarada");
                 errores = true;
                 existe = true;
                 valida = false;
@@ -3126,7 +3136,7 @@ class CUP$parser$actions {
             }
             for (ElementoTabla par : listaVariables.getParams()) {
                 if (symbolTable.containsSymbol( par.getName())) {
-                    System.out.println("Symbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
+                    System.out.println("Error: Simbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
                     errores = true;
                     valida = false;
                 }else{
@@ -3138,7 +3148,7 @@ class CUP$parser$actions {
         
         ASTNode main = new ASTNode("declaraFuncion",e);
         if(!((ASTNode) b).navigateAST()){
-            System.out.println(e+" no tiene sentencia de retorno");
+            System.out.println("Error: "+e+" no tiene sentencia de retorno");
             valida = false;
         }
         if(!checkReturnsBloque((ASTNode)b)){

@@ -95,6 +95,20 @@ parser code {:
             case "expresionBinaria":
                 String valida = checkExpresion(node.getChildren().get(0));
                 return tipo.equals(valida);
+            case "operadorUnario":
+                ASTNode opUnario = node.getChildren().get(0);
+                System.out.println(opUnario.toString());
+                String tipoOperando = opUnario.getChildren().get(0).getValue().toString();
+                switch(tipoOperando){
+                    case "IDENTIFIER":
+                        String idName = opUnario.getChildren().get(2).getValue().toString();
+                        String idTipo = simboloValido(idName);
+                        return tipo.equals(idTipo);
+                    case "expresionNumerica":
+                        return tipo.equals("int") || tipo.equals("float");
+                    default:
+                        return false;
+                }
             default:
                 return false;
         }
@@ -495,10 +509,7 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
         }
         for (ASTNode ret : listaRetornos) {
             ASTNode nodoRet = ret.getChildren().get(0);
-            System.out.println("----retorno");
-            System.out.println("---===="+nodoRet);
             boolean validReturn = checkDeclaraVar((String)t, nodoRet);
-            System.out.println("---====######"+validReturn);
             if(!validReturn){
                 valida = false;
                 System.out.println("Error: El tipo de retorno de main no coincide con el valor retornado ");
@@ -514,7 +525,6 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
     :};
 
 funciones ::= funciones:f declaraFuncion:d {:
-        System.out.println("declaraFuncion");
         ASTNode res = new ASTNode("declaraFuncion");
         ASTNode bNode = (ASTNode)f;
         for(ASTNode child : bNode.getChildren()){
@@ -567,7 +577,7 @@ opRelacional ::= MENOR:e {:RESULT = e;:}
 
 operadorUnario ::= MENOS:op numerico:e  {:
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","expresionNumerica");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -577,7 +587,7 @@ operadorUnario ::= MENOS:op numerico:e  {:
     :} %prec uminus
     |MENOS:op IDENTIFIER:e  {:
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -587,7 +597,7 @@ operadorUnario ::= MENOS:op numerico:e  {:
     :} %prec uminus
     | INCREMENTO:op IDENTIFIER:e {:
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);
@@ -597,7 +607,7 @@ operadorUnario ::= MENOS:op numerico:e  {:
     :}
     | DECREMENTO:op IDENTIFIER:e{:
         System.out.println("operador unario");
-        ASTNode expresionUnaria = new ASTNode("tipo","expresionUnaria");
+        ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
         res.addChild((ASTNode)expresionUnaria);

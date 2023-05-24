@@ -1,56 +1,39 @@
-int aa(char as){
-	int a = 4$
-	if(true){
-		int c = a *2$
-		int cc = a *2$
-		int test = cc$
-
-
-	}
-	int aa = 4$
-	do{
-		int b = 2$
-	}while(true)$
-
-}
-/_
-
-int as(int argA, String argb, int argFun){
-	return 1$
-}_/
-
-bool te(){
-	return true$
-}
 int main(){
-	int a = 4$
-	@int i = 'a'$
-	@int ii = "aa"$
-	@int iii = 2.1$
-	@int iiiii = 3$
-	@int aa = 2$
-	@int iiiiii = aa$
-	@char iiiiiii = aa()$
-	@int iiiiiiia = [2,3,4,5,6]$
-	@int iiiiiia = a[2]$
-
-	@bool test = (true ^ true) # (false ^ 2>3)$
-	@int iiiiia = 2+as(2,a,"sdf")$
-	@int nuevo  =  2+ iiiiia$
-	@int iiiia = 2>5$
-	@int asd = true ^ false$
-	@int iiia = true$
-	@leer(1)$
-	@leer(2.3)$
-	@escribir('2')$
-	@escribir(2)$
-	@escribir(2.5)$
-	@escribir(a)$
-	@String bb = "aaa"$
-	do{
-		int b = 2$
-	}while(true)$
-	
-	return aa('a')$
+	escribir("hola")$
+	escribir(34)$
+	escribir(6.7)$@solucionar negativos
+	return 1$
 }
 
+float miFunc (int dif, char otra){
+	int otras = -dif$
+	int otrasS = -1$
+	String str = "Hola $%&/#$&) mundo"$
+	int var$
+	for(int i=0$i>10$++i)
+	{
+		do
+		{
+			var = var-1$
+		}while(var>12 # (34+34)>12)$
+
+		if (var == 0)
+		{
+			escribir("entra al if")$
+		}
+		elif(true)
+		{
+			print(var)$
+		}
+		elif(false^true)
+		{
+			leer(var)$
+			break$
+		}
+	}
+	return 1.1$ @error
+}
+
+bool miOtraFun(){
+	return true$ @error
+}
