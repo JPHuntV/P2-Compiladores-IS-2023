@@ -14,6 +14,7 @@ parser code {:
     //la creacion de las tablas de simbolos
     ListaElementosTabla listaParametros = new ListaElementosTabla();
     ListaElementosTabla listaVariables = new ListaElementosTabla();
+    ArrayList<ASTNode> listaRetornos = new ArrayList<>();
 
     //estructura que almacena representaciones de las funciones que se hayan encontrado
     List<Funcion> functions = new ArrayList<Funcion>();
@@ -270,6 +271,7 @@ parser code {:
         }
     }
     public String simboloValido(String varName){ 
+        System.out.println("_______simbolo valido____________");
         System.out.println(varName);
         String varTipo = listaParametros.existe(varName);
         String varTipo1 = listaVariables.existe(varName);
@@ -348,7 +350,23 @@ parser code {:
         return "invalida";
     }
 
-
+    public boolean checkReturnsBloque(ASTNode bloque){
+        System.out.println("check bloque");
+        int cantReturn = 0;
+        for(ASTNode sentencia : bloque.getChildren()){
+            System.out.println(sentencia.getType());
+            System.out.println("-=-=-=-=-=-=-");
+            if(sentencia.getType().equals("returnStm")){
+                listaRetornos.add(sentencia);
+                cantReturn++;
+            }
+        }
+        System.out.println("cant returns: "+cantReturn);
+        if(cantReturn <= 1){
+            return true;
+        }
+        return false;
+    }
 
     //instancia del analizador lexico creado en jflex
     Analizador s;
@@ -436,12 +454,13 @@ programa ::= main:e {:
 
 main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE 
     {: 
-        
+        boolean valida = true;
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t )){
-                System.out.println("La funcion "+ (String) t +"  " + e + " ya fue declarada");
+                System.out.println("Error: La funcion "+ (String) t +"  " + e + " ya fue declarada");
                 errores = true;
+                valida = false;
                 existe = true;
             }
         }
@@ -456,8 +475,8 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
             }
             for (ElementoTabla par : listaVariables.getParams()) {
                 if (symbolTable.containsSymbol( par.getName())) {
-                    System.out.println("El simbolo " +  par.getName() + " ya fue declarado en esta función");
-                    
+                    System.out.println("Error: El simbolo " +  par.getName() + " ya fue declarado en esta función");
+                    valida = false;
                     errores = true;
                 }else{
                     symbolTable.addSymbol(par.getName(), par.getType());
@@ -465,15 +484,33 @@ main ::= INT:t MAIN:e LPAREN RPAREN LBRACE bloque:d RBRACE
             }
              getSymbolTableStack().push(symbolTable);  
         }
-        listaVariables  = new ListaElementosTabla();
-        listaParametros  = new ListaElementosTabla();
+        
         ASTNode main = new ASTNode("declaraFuncion","main");
         if(!((ASTNode) d).navigateAST()){
-            System.out.println("main no tiene sentencia de retorno");
+            System.out.println("Error: main no tiene sentencia de retorno");
+            valida = false;
         }
+        if(!checkReturnsBloque((ASTNode)d)){
+            valida = false;
+        }
+        for (ASTNode ret : listaRetornos) {
+            ASTNode nodoRet = ret.getChildren().get(0);
+            System.out.println("----retorno");
+            System.out.println("---===="+nodoRet);
+            boolean validReturn = checkDeclaraVar((String)t, nodoRet);
+            System.out.println("---====######"+validReturn);
+            if(!validReturn){
+                valida = false;
+                System.out.println("Error: El tipo de retorno de main no coincide con el valor retornado ");
+                break;
+            }
+        }
+        listaVariables  = new ListaElementosTabla();
+        listaParametros  = new ListaElementosTabla();
         main.addChild((ASTNode) d);
         main.addChild(new ASTNode("dataType",t));
-        RESULT = main;    
+        listaRetornos = new ArrayList();
+        if(valida) RESULT = main;    
     :};
 
 funciones ::= funciones:f declaraFuncion:d {:
@@ -758,11 +795,26 @@ array ::= expresion:a {:
 
 if ::= IF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE {:
         ASTNode res =  new ASTNode("estructuraControl");
+        boolean valida = true;
         res.addChild(new ASTNode("tipo","ifStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
         res.addChild(new ASTNode("body",(ASTNode)b));
-        RESULT = res;
+        //checkReturnsBloque((ASTNode)b);
+        if(((ASTNode)exp).getType().equals("expresionBinaria")){
+            if(!checkExpresion((ASTNode)exp).equals("invalida")){
+                System.out.println("expresion valida");
+            }else{
+                System.out.println("expresion no valida");
+                valida = false;
+            }
+        }else if(((ASTNode)exp).getType().equals("literal_bool")){
+            System.out.println("expresion valida");
+        }
 
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        if(valida) RESULT = res;
     :}
     ;
 
@@ -772,8 +824,23 @@ elif ::= ELIF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE{:
         res.addChild(new ASTNode("tipo","elifStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
         res.addChild(new ASTNode("body",(ASTNode)b));
-        RESULT = res;
-
+        boolean valida = true;
+        if(((ASTNode)exp).getType().equals("expresionBinaria")){
+            if(!checkExpresion((ASTNode)exp).equals("invalida")){
+                System.out.println("expresion valida");
+                valida = true;
+            }else{
+                System.out.println("expresion no valida");
+                valida = false;
+            }
+        }else if(((ASTNode)exp).getType().equals("literal_bool")){
+            System.out.println("expresion valida");
+            valida = true;
+        }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        if(valida) RESULT = res;
     :}
     | elif:e ELIF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE{:
         ASTNode res =  new ASTNode("estructuraControl");
@@ -781,10 +848,24 @@ elif ::= ELIF LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE{:
         res.addChild(new ASTNode("eval", (ASTNode)exp));
         ((ASTNode)b).addChild(new ASTNode("alternate",null));
         res.addChild(new ASTNode("body",(ASTNode)b));
-        RESULT = res;
-
         ((ASTNode)e).addChild(new ASTNode("alternate",res));
-        RESULT = e;
+        boolean valida = true;
+        if(((ASTNode)exp).getType().equals("expresionBinaria")){
+            if(!checkExpresion((ASTNode)exp).equals("invalida")){
+                System.out.println("expresion valida");
+                valida = true;
+            }else{
+                System.out.println("expresion no valida");
+                valida = false;
+            }
+        }else if(((ASTNode)exp).getType().equals("literal_bool")){
+            System.out.println("expresion valida");
+            valida = true;
+        }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        if(valida) RESULT = res;
     :}
     ;
 
@@ -803,8 +884,23 @@ while ::= WHILE LPAREN expresionLogica:exp RPAREN LBRACE bloque:b RBRACE {:
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","whileStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
-        res.addChild(new ASTNode("body",(ASTNode)b));
-        RESULT = res;
+        boolean valida = true;
+        if(((ASTNode)exp).getType().equals("expresionBinaria")){
+            if(!checkExpresion((ASTNode)exp).equals("invalida")){
+                System.out.println("expresion valida");
+                valida = true;
+            }else{
+                System.out.println("expresion no valida");
+                valida = false;
+            }
+        }else if(((ASTNode)exp).getType().equals("literal_bool")){
+            System.out.println("expresion valida");
+            valida = true;
+        }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        if(valida) RESULT = res;
     :}
     ;
 
@@ -814,7 +910,27 @@ doWhile ::= DO LBRACE bloque:b RBRACE WHILE LPAREN expresionLogica:exp RPAREN DO
         res.addChild(new ASTNode("tipo","doWhileStm"));
         res.addChild(new ASTNode("body",(ASTNode)b));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
-        RESULT = res;
+            System.out.println("'''''''''''''"+((ASTNode)exp).getType());
+            System.out.println("'''''''''''''");
+        boolean valida = true;
+        if(((ASTNode)exp).getType().equals("expresionBinaria")){
+            if(!checkExpresion((ASTNode)exp).equals("invalida")){
+                System.out.println("expresion valida");
+                valida = true;
+            }else{
+                System.out.println("expresion no valida");
+                valida = false;
+            }
+        }else if(((ASTNode)exp).getType().equals("literal_bool")){
+            System.out.println("expresion valida");
+            valida = true;
+        }else{
+            valida = false;
+        }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        if(valida) RESULT = res;
     :}
     ;
 
@@ -826,7 +942,25 @@ for ::= FOR LPAREN declaraVar:d DOLLAR expresionLogica:exp DOLLAR expresion:e  R
         res.addChild(new ASTNode("eval", (ASTNode)exp));
         res.addChild(new ASTNode("update", (ASTNode)e));
         res.addChild(new ASTNode("body",(ASTNode)b));
-        RESULT = res;
+        boolean valida = true;
+        if(((ASTNode)exp).getType().equals("expresionBinaria")){
+            if(!checkExpresion((ASTNode)exp).equals("invalida")){
+                System.out.println("expresion valida");
+                valida = true;
+            }else{
+                System.out.println("expresion no valida");
+                valida = false;
+            }
+        }else if(((ASTNode)exp).getType().equals("literal_bool")){
+            System.out.println("expresion valida");
+            valida = true;
+        }else{
+            valida = false;
+        }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        if(valida) RESULT = res;
     :}
     ;
 
@@ -864,10 +998,10 @@ return ::= RETURN:r expresion:e{:
         ((ASTNode)e).setType("value");
         RESULT = ((ASTNode)e);
     :}
-    |RETURN:r {:
-        ASTNode e = new ASTNode("value", null);
-        RESULT = e;
-    :}
+    //|RETURN:r {:
+    //    ASTNode e = new ASTNode("value", null);
+    //    RESULT = e;
+    //:}
     ;
 
 
@@ -1027,15 +1161,17 @@ parametros ::=
 
 declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:b RBRACE 
     {:
+        boolean valida = true;
         System.out.println("=========================================");
         System.out.println(b.toString());
         System.out.println("=========================================");
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
-                System.out.println("La funcion "+ (String) t +"  " + e + " ya fue declarada");
+                System.out.println("Error: La funcion "+ (String) t +"  " + e + " ya fue declarada");
                 errores = true;
                 existe = true;
+                valida = false;
             }
         }
         if(existe == false){
@@ -1049,35 +1185,55 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:
             }
             for (ElementoTabla par : listaVariables.getParams()) {
                 if (symbolTable.containsSymbol( par.getName())) {
-                    System.out.println("Symbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
+                    System.out.println("Error: Simbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
                     errores = true;
+                    valida = false;
                 }else{
                     symbolTable.addSymbol(par.getName(), par.getType());
                 }
             }
              getSymbolTableStack().push(symbolTable);
         }
-        listaVariables  = new ListaElementosTabla();
-        listaParametros  = new ListaElementosTabla();
+        
         ASTNode main = new ASTNode("declaraFuncion",e);
         if(!((ASTNode) b).navigateAST()){
-            System.out.println(e+" no tiene sentencia de retorno");
+            System.out.println("Error: "+e+" no tiene sentencia de retorno");
+            valida = false;
         }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        for (ASTNode ret : listaRetornos) {
+            ASTNode nodoRet = ret.getChildren().get(0);
+            System.out.println("----retorno");
+            System.out.println("---===="+nodoRet);
+            boolean validReturn = checkDeclaraVar((String)t, nodoRet);
+            System.out.println("---====######"+validReturn);
+            if(!validReturn){
+                valida =false;
+                System.out.println("Error: El tipo de retorno de "+e+" no coincide con el valor retornado ");
+                break;
+            }
+        }
+        listaVariables  = new ListaElementosTabla();
+        listaParametros  = new ListaElementosTabla();
         main.addChild((ASTNode) p);
         main.addChild((ASTNode) b);
         main.addChild(new ASTNode("dataType",t));
-        RESULT = main; 
+        listaRetornos = new ArrayList();
+        if(valida) RESULT = main;  
     :}
 
     | tipo:t IDENTIFIER:e LPAREN RPAREN LBRACE bloque:b RBRACE
     {:
-        
+        boolean valida = true;
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
                 System.out.println("La funcion \""+ (String) t +"  " + e + "\" ya fue declarada previamente");
                 errores = true;
                 existe = true;
+                valida = false;
             }
         }
         if(existe == false){
@@ -1093,21 +1249,40 @@ declaraFuncion ::= tipo:t IDENTIFIER:e LPAREN parametros:p RPAREN LBRACE bloque:
                 if (symbolTable.containsSymbol( par.getName())) {
                     System.out.println("Symbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
                     errores = true;
+                    valida = false;
                 }else{
                     symbolTable.addSymbol(par.getName(), par.getType());
                 }
             }
              getSymbolTableStack().push(symbolTable);
         }
-        listaVariables  = new ListaElementosTabla();
-        listaParametros  = new ListaElementosTabla();
+        
         ASTNode main = new ASTNode("declaraFuncion",e);
         if(!((ASTNode) b).navigateAST()){
             System.out.println(e+" no tiene sentencia de retorno");
+            valida = false;
         }
+        if(!checkReturnsBloque((ASTNode)b)){
+            valida = false;
+        }
+        for (ASTNode ret : listaRetornos) {
+            ASTNode nodoRet = ret.getChildren().get(0);
+            System.out.println("----retorno");
+            System.out.println("---===="+nodoRet);
+            boolean validReturn = checkDeclaraVar((String)t, nodoRet);
+            System.out.println("---====######"+validReturn);
+            if(!validReturn){
+                valida =false;
+                System.out.println("Error: El tipo de retorno de "+e+" no coincide con el valor retornado ");
+                break;
+            }
+        }
+        listaVariables  = new ListaElementosTabla();
+        listaParametros  = new ListaElementosTabla();
         main.addChild((ASTNode) b);
         main.addChild(new ASTNode("dataType",t));
-        RESULT = main; 
+        listaRetornos = new ArrayList();
+        if(valida) RESULT = main;  
     :};
 
 

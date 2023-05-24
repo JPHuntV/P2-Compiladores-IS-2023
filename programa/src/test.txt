@@ -1,13 +1,27 @@
-/_
 int aa(char as){
 	int a = 4$
+	if(true){
+		int c = a *2$
+		int cc = a *2$
+		int test = cc$
+
+
+	}
 	int aa = 4$
-	return a$
+	do{
+		int b = 2$
+	}while(true)$
+
 }
+/_
 
 int as(int argA, String argb, int argFun){
 	return 1$
 }_/
+
+bool te(){
+	return true$
+}
 int main(){
 	int a = 4$
 	@int i = 'a'$
@@ -26,12 +40,17 @@ int main(){
 	@int iiiia = 2>5$
 	@int asd = true ^ false$
 	@int iiia = true$
-	leer(1)$
-	leer(2.3)$
+	@leer(1)$
+	@leer(2.3)$
 	@escribir('2')$
-	escribir(2)$
-	escribir(2.5)$
-	escribir(a)$
-	return 1$
+	@escribir(2)$
+	@escribir(2.5)$
+	@escribir(a)$
+	@String bb = "aaa"$
+	do{
+		int b = 2$
+	}while(true)$
+	
+	return aa('a')$
 }
 
