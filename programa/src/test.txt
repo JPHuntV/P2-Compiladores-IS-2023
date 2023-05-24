@@ -1,13 +1,10 @@
-int main(){
-	escribir("hola")$
-	escribir(34)$
-	escribir(6.7)$@solucionar negativos
-	return 1$
-}
+
 
 float miFunc (int dif, char otra){
+	int otrasS = 1$
+	int otrasSsd = 2+3+4$
+	int prueba = test(1,2)$
 	int otras = -dif$
-	int otrasS = -1$
 	String str = "Hola $%&/#$&) mundo"$
 	int var$
 	for(int i=0$i>10$++i)
@@ -36,4 +33,13 @@ float miFunc (int dif, char otra){
 
 bool miOtraFun(){
 	return true$ @error
+}
+int test(int a, int b){
+	return a+b$
+}
+int main(){
+	escribir("hola")$
+	escribir(34)$
+	escribir(6.7)$@solucionar negativos
+	return 1$
 }

@@ -77,8 +77,13 @@ public class App {
                         }
                     }
                 }
-                
+                BufferedWriter writer2 = new BufferedWriter(new FileWriter("programa/resultados/AST.txt"));
+                writer2.write(result.value.toString());
+                writer2.close();
                 System.out.println("Parse tree: " + result.value.toString());
+                IntermediateCodeGenerator intermediateCodeGenerator = new IntermediateCodeGenerator();
+                String intermediateCode = intermediateCodeGenerator.generateCode((ASTNode) result.value);
+                System.out.println("Codigo intermedio\n\n" + intermediateCode);
             }else{
                 System.out.println("El archivo no puede ser generado ya que se han reportado errores");
                 writer.write("El archivo no puede ser generado ya que se han reportado errores");
