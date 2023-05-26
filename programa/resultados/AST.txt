@@ -20,18 +20,18 @@ inicio {
             expresionBinaria {
               tipo: expresionAritmetica
               operador: +
-              left: expresionBinaria {
+              left: literal_int {
+                2
+              }
+              right: expresionBinaria {
                 tipo: expresionAritmetica
                 operador: +
                 left: literal_int {
-                  2
-                }
-                right: literal_int {
                   3
                 }
-              }
-              right: literal_int {
-                4
+                right: literal_int {
+                  4
+                }
               }
             }
           }
@@ -48,6 +48,14 @@ inicio {
             }
           }
         }
+        declaraVar: prueba {
+          dataType: int
+          init {
+            llamaFuncion {
+              nombre: tess
+            }
+          }
+        }
         declaraVar: otras {
           dataType: int
           init {
@@ -55,6 +63,18 @@ inicio {
               tipo: IDENTIFIER
               operador: -
               value: dif
+            }
+          }
+        }
+        declaraVar: otrase {
+          dataType: int
+          init {
+            operadorUnario {
+              tipo: expresionNumerica
+              operador: -
+              value: literal_int {
+                2
+              }
             }
           }
         }
@@ -85,8 +105,8 @@ inicio {
             left: IDENTIFIER {
               valor: i
             }
-            right: literal_int {
-              10
+            right: IDENTIFIER {
+              valor: var
             }
           }
           update: init {
@@ -100,7 +120,8 @@ inicio {
             estructuraControl {
               tipo: doWhileStm
               body: bloque {
-                asignacion: var {
+                declaraVar: fvar {
+                  dataType: int
                   init {
                     expresionBinaria {
                       tipo: expresionAritmetica
