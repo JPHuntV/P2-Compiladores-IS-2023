@@ -1,10 +1,11 @@
-
+int test(int a, int b){
+	return a+b$
+}
 
 float miFunc (int dif, char otra){
 	int otrasS = 1$
 	int otrasSsd = 2+(3+4)$
-	int prueba = test(1,2)$
-	int prueba = tess()$
+	int prueba = test(1,otrasS)$
 	int otras = -dif$
 	int otrase = -2$
 	String str = "Hola $%&/#$&) mundo"$
@@ -13,12 +14,12 @@ float miFunc (int dif, char otra){
 	{
 		do
 		{
-			int fvar = var-1$
+			var = var-1$
 		}while(var>12 # (34+34)>12)$
 
 		if (var == 0)
 		{
-			escribir("entra al if")$
+			print("entra al if")$
 		}
 		elif(true)
 		{
@@ -36,12 +37,10 @@ float miFunc (int dif, char otra){
 bool miOtraFun(){
 	return true$ @error
 }
-int test(int a, int b){
-	return a+b$
-}
+
 int main(){
-	escribir("hola")$
-	escribir(34)$
-	escribir(6.7)$@solucionar negativos
+	print("hola")$
+	print(34)$
+	print(6.7)$@solucionar negativos
 	return 1$
 }

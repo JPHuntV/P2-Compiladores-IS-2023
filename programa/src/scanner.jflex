@@ -129,8 +129,8 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "for"           {return symbol(FOR,yytext()); }
     "return"        {return symbol(RETURN); }
     "break"         {return symbol(BREAK); }
-    "leer"          {return symbol(LEER,yytext()); }
-    "escribir"      {return symbol(ESCRIBIR,yytext()); }
+    "read"          {return symbol(LEER,yytext()); }
+    "print"      {return symbol(ESCRIBIR,yytext()); }
 
     "/_"            { yybegin(COMMENTB); } //indica que la siguiente expresión será un comentario en bloque
 

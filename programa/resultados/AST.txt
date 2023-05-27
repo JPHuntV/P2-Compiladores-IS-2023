@@ -1,5 +1,28 @@
 inicio {
   programa {
+    declaraFuncion: test {
+      parametros {
+        int: a
+        int: b
+      }
+      bloque {
+        returnStm {
+          value {
+            expresionBinaria {
+              tipo: expresionAritmetica
+              operador: +
+              left: IDENTIFIER {
+                valor: a
+              }
+              right: IDENTIFIER {
+                valor: b
+              }
+            }
+          }
+        }
+      }
+      dataType: int
+    }
     declaraFuncion: miFunc {
       parametros {
         int: dif
@@ -43,16 +66,8 @@ inicio {
               nombre: test
               argumentos {
                 literal_int: 1
-                literal_int: 2
+                IDENTIFIER: otrasS
               }
-            }
-          }
-        }
-        declaraVar: prueba {
-          dataType: int
-          init {
-            llamaFuncion {
-              nombre: tess
             }
           }
         }
@@ -120,8 +135,7 @@ inicio {
             estructuraControl {
               tipo: doWhileStm
               body: bloque {
-                declaraVar: fvar {
-                  dataType: int
+                asignacion: var {
                   init {
                     expresionBinaria {
                       tipo: expresionAritmetica
@@ -183,38 +197,51 @@ inicio {
               body: bloque {
                 expresion {
                   llamaFuncion {
-                    nombre: escritura
-                    init {
-                      literal_string {
-                        "entra al if"
-                      }
+                    nombre: print
+                    argumentos {
+                      literal_string: "entra al if"
                     }
                   }
                 }
               }
               alternate: estructuraControl {
                 tipo: elifStm
-                eval: expresionBinaria {
-                  tipo: expresionLogica
-                  operador: ^
-                  left: literal_bool {
-                    false
-                  }
-                  right: literal_bool {
-                    true
-                  }
+                eval: literal_bool {
+                  true
                 }
                 body: bloque {
                   expresion {
                     llamaFuncion {
-                      nombre: lectura
-                      IDENTIFIER {
-                        var
+                      nombre: print
+                      argumentos {
+                        IDENTIFIER: valor
                       }
                     }
                   }
-                  breakStm
-                  alternate
+                }
+                alternate: estructuraControl {
+                  tipo: elifStm
+                  eval: expresionBinaria {
+                    tipo: expresionLogica
+                    operador: ^
+                    left: literal_bool {
+                      false
+                    }
+                    right: literal_bool {
+                      true
+                    }
+                  }
+                  body: bloque {
+                    expresion {
+                      llamaFuncion {
+                        nombre: leer
+                        argumentos {
+                          IDENTIFIER: var
+                        }
+                      }
+                    }
+                    breakStm
+                  }
                 }
               }
             }
@@ -242,58 +269,29 @@ inicio {
       }
       dataType: bool
     }
-    declaraFuncion: test {
-      parametros {
-        int: a
-        int: b
-      }
-      bloque {
-        returnStm {
-          value {
-            expresionBinaria {
-              tipo: expresionAritmetica
-              operador: +
-              left: IDENTIFIER {
-                valor: a
-              }
-              right: IDENTIFIER {
-                valor: b
-              }
-            }
-          }
-        }
-      }
-      dataType: int
-    }
     declaraFuncion: main {
       bloque {
         expresion {
           llamaFuncion {
-            nombre: escritura
-            init {
-              literal_string {
-                "hola"
-              }
+            nombre: print
+            argumentos {
+              literal_string: "hola"
             }
           }
         }
         expresion {
           llamaFuncion {
-            nombre: escritura
-            init {
-              literal_int {
-                34
-              }
+            nombre: print
+            argumentos {
+              literal_int: 34
             }
           }
         }
         expresion {
           llamaFuncion {
-            nombre: escritura
-            init {
-              literal_float {
-                6.7
-              }
+            nombre: print
+            argumentos {
+              literal_float: 6.7
             }
           }
         }

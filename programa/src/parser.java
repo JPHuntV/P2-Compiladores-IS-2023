@@ -902,13 +902,27 @@ public class parser extends java_cup.runtime.lr_parser {
 
 //########################################################################
 
+    public boolean tiposCompatibles(String tipo1, String tipo2){
+        if(tipo1.equals("float") && tipo2.equals("int")){
+            return true;
+        }
+        else if (tipo1.equals("String") && tipo2.equals("char")){
+            return true;
+        }
+        else if (tipo1.equals(tipo2)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
     public boolean checkDeclaraVar(String tipo, ASTNode node){
         String valor = node.getChildren().get(0).getType();
         System.out.println("testing ,"+tipo+",    "+valor);
         switch (valor) {
             case "literal_int":
-                return tipo.equals("int");
+                return tipo.equals("int") || tipo.equals("float");
             case "literal_bool":
                 return tipo.equals("bool");
             case "literal_string":
@@ -920,6 +934,7 @@ public class parser extends java_cup.runtime.lr_parser {
             case "IDENTIFIER":
                 String varName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
+                
                 return tipo.equals(varTipo);
             case "llamaFuncion":
                 String funName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
@@ -932,8 +947,12 @@ public class parser extends java_cup.runtime.lr_parser {
                     return false;
                 }
             case "expresionBinaria":
+
                 String valida = checkExpresion(node.getChildren().get(0));
-                return tipo.equals(valida);
+                System.out.println("recibi "+valida+" y tipo es "+tipo);
+                System.out.println(tipo.equals(valida));
+                System.out.println(valida.equals(tipo));
+                return tiposCompatibles(tipo, valida);
             case "operadorUnario":
                 ASTNode opUnario = node.getChildren().get(0);
                 System.out.println(opUnario.toString());
@@ -1034,6 +1053,7 @@ public class parser extends java_cup.runtime.lr_parser {
                 String varTipo = simboloValido(varName);
                 System.out.println("vartipo: "+varTipo);
                 if(checkExpresionAux(right, varTipo)){
+                        System.out.println("son iguales");
                         return varTipo;
                 }
                 else{
@@ -1081,19 +1101,20 @@ public class parser extends java_cup.runtime.lr_parser {
         String tipoOp = right.getType();
         switch(tipoOp){
             case "literal_int":
-                return tipoCheck.equals("int");
+                return tipoCheck.equals("int") || tipoCheck.equals("float");
             case "literal_bool":
                 return tipoCheck.equals("bool");
             case "literal_string":
                 return tipoCheck.equals("String")|| tipoCheck.equals("char");
             case "literal_float":
-                return tipoCheck.equals("float") || tipoCheck.equals("int");
+                return tipoCheck.equals("float") ;
             case "literal_char":
                 return tipoCheck.equals("char");
             case "IDENTIFIER":
                 String varName = right.getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
-                System.out.println("vartipo: "+varTipo);
+                System.out.println("vartipo1: "+tipoCheck);
+                System.out.println("vartipo2: "+varTipo);
                 return varTipo.equals(tipoCheck);
             case "llamaFuncion":
                 String funName = right.getChildren().get(0).getValue().toString();
@@ -1147,7 +1168,7 @@ public class parser extends java_cup.runtime.lr_parser {
             if(tipo.equals("getTipo")){
                 tipo = f.getTipoRetorno();
             }
-            if (f.getName().equals(funName) && f.getTipoRetorno().equals(tipo)) {
+            if (f.getName().equals(funName) && tiposCompatibles(tipo, f.getTipoRetorno())){
                 System.out.println(funName);
                 int i = 0;
                 List<ElementoTabla> parametros = f.getParameters();
@@ -1162,19 +1183,20 @@ public class parser extends java_cup.runtime.lr_parser {
                             case "IDENTIFIER":
                                 String varTipo = simboloValido(valorArg.toString());
                                 System.out.println("vartipo: "+varTipo);
-                                res = varTipo.equals(e.getType()); 
+                                res = tiposCompatibles(e.getType(), varTipo);
+                                //res = varTipo.equals(e.getType()); 
                                 break;
                             case "literal_string":
                                 res = e.getType().equals("String");
                                 break;
                             case "literal_int":
-                                res = e.getType().equals("int");
+                                res = e.getType().equals("int") || e.getType().equals("float");
                                 break;
                             case "literal_float":
                                 res = e.getType().equals("float");
                                 break;
                             case "literal_char":
-                                res = e.getType().equals("char");
+                                res = e.getType().equals("char") || e.getType().equals("String");
                                 break;
                             case "llamaFuncion":
                                 String funNameNest = ((ASTNode)valorArg).getChildren().get(0).getValue().toString();
@@ -2369,8 +2391,8 @@ class CUP$parser$actions {
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","elifStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
-        ((ASTNode)b).addChild(new ASTNode("alternate",null));
         res.addChild(new ASTNode("body",(ASTNode)b));
+        //res.addChild(new ASTNode("alternate","null"));
         ((ASTNode)e).addChild(new ASTNode("alternate",res));
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
@@ -2388,7 +2410,7 @@ class CUP$parser$actions {
         if(!checkReturnsBloque((ASTNode)b)){
             valida = false;
         }
-        if(valida) RESULT = res;
+        if(valida) RESULT = e;
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("elif",17, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-7)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -2823,7 +2845,7 @@ class CUP$parser$actions {
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         ASTNode res = new ASTNode("res");
-        ASTNode escritura = new ASTNode("nombre","escritura");
+        ASTNode escritura = new ASTNode("nombre","print");
         res.addChild(escritura);
         res.addChild((ASTNode)e);
         RESULT = res;
@@ -2843,9 +2865,14 @@ class CUP$parser$actions {
 		int exright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object ex = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        ASTNode asignacion = new ASTNode("asignacion", e);
-        asignacion.addChild((ASTNode)ex);
-        RESULT = asignacion;
+        if(!checkDeclaraVar(simboloValido((String)e), (ASTNode)ex)){
+            System.out.println("Error: variable no declarada");
+            System.exit(0);
+        }else{
+            ASTNode asignacion = new ASTNode("asignacion", e);
+            asignacion.addChild((ASTNode)ex);
+            RESULT = asignacion;
+        }
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("asignacion",26, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -3158,6 +3185,8 @@ class CUP$parser$actions {
             ASTNode nodoRet = ret.getChildren().get(0);
             System.out.println("----retorno");
             System.out.println("---===="+nodoRet);
+            System.out.println("---===="+(String)t);
+
             boolean validReturn = checkDeclaraVar((String)t, nodoRet);
             System.out.println("---====######"+validReturn);
             if(!validReturn){
@@ -3225,7 +3254,7 @@ class CUP$parser$actions {
         
         ASTNode main = new ASTNode("declaraFuncion",e);
         if(!((ASTNode) b).navigateAST()){
-            System.out.println(e+" no tiene sentencia de retorno");
+            System.out.println("Error: "+e+" no tiene sentencia de retorno");
             valida = false;
         }
         if(!checkReturnsBloque((ASTNode)b)){
@@ -3235,6 +3264,8 @@ class CUP$parser$actions {
             ASTNode nodoRet = ret.getChildren().get(0);
             System.out.println("----retorno");
             System.out.println("---===="+nodoRet);
+            System.out.println("---===="+(String)t);
+
             boolean validReturn = checkDeclaraVar((String)t, nodoRet);
             System.out.println("---====######"+validReturn);
             if(!validReturn){
@@ -3686,16 +3717,19 @@ class CUP$parser$actions {
         ASTNode nodoValor = ((ASTNode)e).getChildren().get(0);
         System.out.println(nodoValor.getType());
         String tipoNodo = nodoValor.getType();
+        String valor = nodoValor.getChildren().get(0).getType();
         System.out.println("++++"+tipoNodo);
-
+        System.out.println("++++---"+valor);
+        ASTNode argumento = new ASTNode("argumentos");
+        argumento.addChild(new ASTNode(tipoNodo,valor));
         if(tipoNodo.equals("literal_int") || tipoNodo.equals("literal_float") || tipoNodo.equals("literal_string")){
-            RESULT = e;
+            RESULT = argumento;
         }else if(tipoNodo.equals("IDENTIFIER")){
             String tipoId = simboloValido(nodoValor.getChildren().get(0).getValue().toString());    
             System.out.println(tipoId);
             System.out.println("==========================++++============");
             if(tipoId.equals("int") || tipoId.equals("float") || tipoId.equals("String")){
-                RESULT = e;
+                RESULT = argumento;
             }else{
                 System.out.println("=================================###"+tipoId);
             }
