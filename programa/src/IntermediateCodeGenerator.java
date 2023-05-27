@@ -304,12 +304,21 @@ public class IntermediateCodeGenerator {
                     generateCode((ASTNode)hijosEstructuraControl.get(2).getValue());
                     code.append("  goto _"+funcionActual+"_if"+ifActual+"_end\n");
 
-                    System.out.println("_"+funcionActual+"_if"+ifActual+"_else:");
-                    code.append("\n_"+funcionActual+"_if"+ifActual+"_else:\n");
-                    if(hijosEstructuraControl.size() == 4){
+                    if(hijosEstructuraControl.size() >= 4){
+                        System.out.println("_"+funcionActual+"_if"+ifActual+"_else:");
+                        code.append("\n_"+funcionActual+"_if"+ifActual+"_"+((ASTNode)hijosEstructuraControl.get(3).getValue()).getChildren().get(0).getValue().toString()+":\n");
                         temp =  new ASTNode("");
                         temp.addChild((ASTNode)hijosEstructuraControl.get(3).getValue());
                         generateCode(temp);
+
+                        if(hijosEstructuraControl.size() == 5){
+                            System.out.println("_"+funcionActual+"_if"+ifActual+"_else:");
+                            code.append("\n_"+funcionActual+"_if"+ifActual+"_else:\n");
+                            temp =  new ASTNode("");
+                            temp.addChild((ASTNode)hijosEstructuraControl.get(4).getValue());
+                            generateCode(temp);
+                        }
+
                     }
                     code.append("  goto _"+funcionActual+"_if"+ifActual+"_end\n");
 
@@ -347,6 +356,19 @@ public class IntermediateCodeGenerator {
                     System.out.println("_"+funcionActual+"_elif"+elifActual+"_end:");
                     code.append("\n_"+funcionActual+"_elif"+elifActual+"_end:\n");
                     
+                }
+                else if(hijosEstructuraControl.get(0).getValue().equals("elseStm")){
+                    elseCount++;
+                    int elseActual = elseCount;
+
+                    System.out.println("_"+funcionActual+"_else"+elseActual+"_body:");
+                    code.append("\n_"+funcionActual+"_else"+elseActual+"_body:\n");
+                    generateCode((ASTNode)hijosEstructuraControl.get(1).getValue());
+                    code.append("  goto _"+funcionActual+"_else"+elseActual+"_end\n");
+
+
+                    System.out.println("_"+funcionActual+"_else"+elseActual+"_end:");
+                    code.append("\n_"+funcionActual+"_else"+elseActual+"_end:\n");
                 }
             }
             

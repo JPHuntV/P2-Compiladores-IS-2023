@@ -12,6 +12,8 @@ int test(int a, int b){
 			elif(false^true){
 				read(a)$
 				break$
+			}else{
+				i =0$
 			}
 			
 		}

@@ -2699,7 +2699,7 @@ class CUP$parser$actions {
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) ef));
-        ((ASTNode)f).addChild(new ASTNode("alternateElse",(ASTNode) e));
+        ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) e));
         RESULT = f;
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("estructuraControl",21, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
@@ -2717,7 +2717,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        ((ASTNode)f).addChild(new ASTNode("alternateElse",(ASTNode) e));
+        ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) e));
         RESULT = f;
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("estructuraControl",21, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);

@@ -1100,11 +1100,11 @@ estructuraControl ::= if:f{:
     :}
     |if:f elif:ef else:e {:
         ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) ef));
-        ((ASTNode)f).addChild(new ASTNode("alternateElse",(ASTNode) e));
+        ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) e));
         RESULT = f;
     :}
     |if:f  else:e {:
-        ((ASTNode)f).addChild(new ASTNode("alternateElse",(ASTNode) e));
+        ((ASTNode)f).addChild(new ASTNode("alternate",(ASTNode) e));
         RESULT = f;
     :}
     |while:w {:
