@@ -1,7 +1,24 @@
 int test(int a, int b){
+	while(a>b){
+		for(int i=0$i>a$++i){
+			a = a-1$
+			if (a == 0){
+				print("entra al if")$
+			}
+			elif(true){
+				print(a)$
+				break$
+			}
+			elif(false^true){
+				read(a)$
+				break$
+			}
+			
+		}
+	}
 	return a+b$
 }
-
+/_
 float miFunc (int dif, char otra){
 	int otrasS = 1$
 	int otrasSsd = 2+(3+4)$
@@ -9,7 +26,7 @@ float miFunc (int dif, char otra){
 	int otras = -dif$
 	int otrase = -2$
 	String str = "Hola $%&/#$&) mundo"$
-	int var$
+	int var = 8$
 	for(int i=0$i>var$++i)
 	{
 		do
@@ -27,17 +44,17 @@ float miFunc (int dif, char otra){
 		}
 		elif(false^true)
 		{
-			leer(var)$
+			read(var)$
 			break$
 		}
 	}
-	return 1.1$ @error
+	return test(1,otrasS)$ @error
 }
 
 bool miOtraFun(){
 	return true$ @error
 }
-
+_/
 int main(){
 	print("hola")$
 	print(34)$

@@ -931,11 +931,27 @@ public class parser extends java_cup.runtime.lr_parser {
                 return tipo.equals("float");
             case "literal_char":
                 return tipo.equals("char");
+            case "array":
+                boolean arrayValido = true;
+                System.out.println("testing array");
+                for(ASTNode child : node.getChildren().get(0).getChildren()){
+                    System.out.println(tipo);
+                    System.out.println(child.toString());
+                    if(!checkDeclaraVar(tipo, child)){
+                        System.out.println("no es valido");
+                        arrayValido = false;
+                    }else{
+                        System.out.println("es valido");
+                        arrayValido = true;
+                    }
+                }
+                return arrayValido;
+
             case "IDENTIFIER":
                 String varName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
                 
-                return tipo.equals(varTipo);
+                return tiposCompatibles(tipo, varTipo);
             case "llamaFuncion":
                 String funName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
                 ArrayList<ASTNode> funArg = new ArrayList<>();
@@ -961,7 +977,7 @@ public class parser extends java_cup.runtime.lr_parser {
                     case "IDENTIFIER":
                         String idName = opUnario.getChildren().get(2).getValue().toString();
                         String idTipo = simboloValido(idName);
-                        return tipo.equals(idTipo);
+                        return tiposCompatibles(tipo, idTipo);
                     case "expresionNumerica":
                         return tipo.equals("int") || tipo.equals("float");
                     default:
@@ -992,20 +1008,24 @@ public class parser extends java_cup.runtime.lr_parser {
                 if(tipoOp.equals("literal_int")){
                     return "int";
                 }
+                else if(tipoOp.equals("literal_float")){
+                    return "float";
+                }
+                else if(checkExpresionAux(right, "int")){
+                    return "int";
+                }
+                else if(checkExpresionAux(right, "float")){
+                    return "float";
+                }
                 else{
-                    if(checkExpresionAux(right, "int")){
-                        return "int";
-                    }
-                    else{
-                        return "invalida";
-                    }
+                    return "invalida";
                 }
             case "literal_string":
                 if(tipoOp.equals("literal_string") || tipoOp.equals("literal_char")){
                     return "String";
                 }
                 else{
-                    if(checkExpresionAux(right, "String") || checkExpresionAux(right, "char")){
+                    if(checkExpresionAux(right, "String")){
                         return "String";
                     }
                     else{
@@ -1091,6 +1111,36 @@ public class parser extends java_cup.runtime.lr_parser {
                     System.out.println("me encontre una boolean");
                     return "bool";
                 }
+            //case "operadorUnario":
+            //    ASTNode opUnario = node.getChildren().get(0);
+            //    System.out.println(opUnario.toString());
+            //    String tipoOperando = opUnario.getChildren().get(0).getValue().toString();
+            //    switch(tipoOperando){
+            //        case "IDENTIFIER":
+            //            String idName = opUnario.getChildren().get(2).getValue().toString();
+            //            String idTipo = simboloValido(idName);
+            //            if(tipoOp.equals("int")){
+            //                return "int";
+            //            }
+            //            else if(tipoOp.equals("float")){
+            //                return "float";
+            //            }
+            //            else{
+            //                return "invalida";
+            //            }
+            //        case "expresionNumerica":
+            //            if(tipoOp.equals("int")){
+            //                return "int";
+            //            }
+            //            else if(tipoOp.equals("float")){
+            //                return "float";
+            //            }
+            //            else{
+            //                return "invalida";
+            //            }
+            //        default:
+            //            return "invalida";
+            //    }
             default:
                 System.out.println("+++++++++++++++++++++++++++++++");
                 return "invalida";
@@ -1115,7 +1165,7 @@ public class parser extends java_cup.runtime.lr_parser {
                 String varTipo = simboloValido(varName);
                 System.out.println("vartipo1: "+tipoCheck);
                 System.out.println("vartipo2: "+varTipo);
-                return varTipo.equals(tipoCheck);
+                return tiposCompatibles(tipoCheck, varTipo);
             case "llamaFuncion":
                 String funName = right.getChildren().get(0).getValue().toString();
                 System.out.println("llamando a funcion : "+funName);
@@ -1140,6 +1190,20 @@ public class parser extends java_cup.runtime.lr_parser {
                 }else{
                     return false;
                 }
+            //case "operadorUnario":
+            //    ASTNode opUnario = right.getChildren().get(0);
+            //    System.out.println(opUnario.toString());
+            //    String tipoOperando = opUnario.getChildren().get(0).getValue().toString();
+            //    switch(tipoOperando){
+            //        case "IDENTIFIER":
+            //            String idName = opUnario.getChildren().get(2).getValue().toString();
+            //            String idTipo = simboloValido(idName);
+            //            return tiposCompatibles(tipoCheck, idTipo);
+            //        case "expresionNumerica":
+            //            return tipoCheck.equals("int") || tipoCheck.equals("float");
+            //        default:
+            //            return false;
+            //    }
             default:
                 return false;
         }
@@ -1243,6 +1307,34 @@ public class parser extends java_cup.runtime.lr_parser {
         return false;
     }
 
+    public boolean checkDeclaraArray(ASTNode node){
+        System.out.println("check arrays");
+        System.out.println(node.toString());
+        if(node.getType().equals("declaraArray")){
+            String tipo = node.getChildren().get(0).getValue().toString();
+            String nombre = node.getValue().toString();
+            int tam = Integer.parseInt(node.getChildren().get(1).getValue().toString());
+            String tipoArray = listaVariables.existe(nombre);
+            System.out.println("tipo array: "+tipoArray);
+            if(tipoArray == null){
+                ArrayList<ASTNode> valores = node.getChildren().get(2).getChildren();
+                for(ASTNode valor : valores){
+                   // valor = valor.getChildren().get(0);
+                    System.out.println("comparrando: "+tipo+" con "+valor);
+                    if(!checkDeclaraVar(tipo, valor)){
+                        System.out.println("Error: el tipo de los valores del array "+nombre+" no coinciden con el tipo del array");
+                        return false;
+                    }
+                }
+                listaVariables.addParameter(new ElementoTabla(nombre, tipo, tam));
+                return true;
+            }else{
+                System.out.println("Error: "+nombre+" ya fue declarado");
+                return false;
+            }
+        }
+        return false;
+    }
     //instancia del analizador lexico creado en jflex
     Analizador s;
     parser(Analizador s){ this.s=s; }
@@ -2448,6 +2540,7 @@ class CUP$parser$actions {
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","whileStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
+        res.addChild(new ASTNode("body",(ASTNode)b));
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
             if(!checkExpresion((ASTNode)exp).equals("invalida")){
@@ -3371,7 +3464,7 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		String s = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
-        listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        //listaVariables.addParameter(new ElementoTabla(i,(String) t));
         ASTNode declaraVar = new ASTNode("declaraArray", i);
         declaraVar.addChild( new ASTNode("dataType", t) );
         declaraVar.addChild(new ASTNode("size",s));
@@ -3395,7 +3488,7 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		String s = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
-        listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        //listaVariables.addParameter(new ElementoTabla(i,(String) t));
         ASTNode declaraVar = new ASTNode("declaraVar", i);
         declaraVar.addChild( new ASTNode("dataType", t) );
         declaraVar.addChild(new ASTNode("size",s));
@@ -3553,7 +3646,10 @@ class CUP$parser$actions {
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
            ((ASTNode)d).addChild( (ASTNode)e);
-           RESULT = (ASTNode)d;
+            if(checkDeclaraArray((ASTNode)d)){
+                System.out.println("declaracion correcta");
+                RESULT = (ASTNode)d;
+            }
        
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",34, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -3658,9 +3754,11 @@ class CUP$parser$actions {
         System.out.println(tipoId);
         System.out.println("======================================");
         if(tipoId.equals("int") || tipoId.equals("float")){
-            ASTNode identifier = new ASTNode("IDENTIFIER");
-            identifier.addChild(new ASTNode(n));
-            RESULT = identifier;
+            ASTNode argumentos = new ASTNode("argumentos");
+            ASTNode identifier = new ASTNode("IDENTIFIER",n);
+            //identifier.addChild(new ASTNode(n));
+            argumentos.addChild(identifier);
+            RESULT = argumentos;
         }else{
             System.out.println(n+" debe ser de tipo int o float pero es tipo "+ tipoId);
         }
@@ -3714,10 +3812,16 @@ class CUP$parser$actions {
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
         System.out.println("=================================###");
+        System.out.println(e);
         ASTNode nodoValor = ((ASTNode)e).getChildren().get(0);
         System.out.println(nodoValor.getType());
         String tipoNodo = nodoValor.getType();
-        String valor = nodoValor.getChildren().get(0).getType();
+        String valor;
+        if(tipoNodo.equals("IDENTIFIER")){
+            valor = nodoValor.getChildren().get(0).getValue().toString();
+        }else{
+            valor = nodoValor.getChildren().get(0).getType();
+        }
         System.out.println("++++"+tipoNodo);
         System.out.println("++++---"+valor);
         ASTNode argumento = new ASTNode("argumentos");

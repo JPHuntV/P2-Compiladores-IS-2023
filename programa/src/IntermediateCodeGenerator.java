@@ -17,6 +17,8 @@ public class IntermediateCodeGenerator {
     private int elifCount = 0;
     private int elseCount = 0;
     private boolean asignando = false;
+    private ArrayList<String> ciclosStack = new ArrayList<String>();
+    private String cicloActual = "";
 
     public IntermediateCodeGenerator() {
         code = new StringBuilder();
@@ -43,7 +45,7 @@ public class IntermediateCodeGenerator {
                 generateCode(child);
             }
             else if(childType.equals("declaraFuncion")){
-                code.append(child.getValue()+":\n");
+                code.append("\n"+child.getValue()+":\n");
                 funcionActual = child.getValue().toString();
                 generateCode(child);
                 this.forCount = 0;
@@ -124,7 +126,12 @@ public class IntermediateCodeGenerator {
             }
             else if(childType.equals("IDENTIFIER")){
                 System.out.println("IDENTIFIER");
-                code.append("  t"+tempCount+" = "+child.getChildren().get(0).getValue()+"\n");
+                if(child.getChildren().get(0).getValue() == null){
+                    code.append("  tt"+tempCount+" = "+child.getChildren().get(0).getType()+"\n");
+                }else{
+                    code.append("  ts"+tempCount+" = "+child.getChildren().get(0).getValue()+"\n");
+                
+                }
                 tempCount++;
             }
             else if(childType.equals("expresionBinaria")){
@@ -157,59 +164,108 @@ public class IntermediateCodeGenerator {
             else if(childType.equals("estructuraControl")){
                 ArrayList<ASTNode> hijosEstructuraControl = child.getChildren();
                 if(hijosEstructuraControl.get(0).getValue().equals("forStm")){
-                    System.out.println("_"+funcionActual+"_for"+forCount+"_init:");
-                    code.append("\n_"+funcionActual+"_for"+forCount+"_init:\n");
+                    forCount++;
+                    int forActual = forCount;
+                    ciclosStack.add("_"+funcionActual+"_for"+forActual+"_end");
+                    cicloActual = "_"+funcionActual+"_for"+forActual+"_end";
+                    System.out.println("_"+funcionActual+"_for"+forActual+"_init:");
+                    code.append("\n_"+funcionActual+"_for"+forActual+"_init:\n");
                     ASTNode temp =  new ASTNode("");
                     temp.addChild((ASTNode)hijosEstructuraControl.get(1).getValue());
                     generateCode(temp);
 
-                    System.out.println("_"+funcionActual+"_for"+forCount+"_eval:");
-                    code.append("\n_"+funcionActual+"_for"+forCount+"_eval:\n");
+                    System.out.println("_"+funcionActual+"_for"+forActual+"_eval:");
+                    code.append("\n_"+funcionActual+"_for"+forActual+"_eval:\n");
                     temp =  new ASTNode("");
                     temp.addChild((ASTNode)hijosEstructuraControl.get(2).getValue());
                     generateCode(temp);
 
-                    code.append("  if t"+(tempCount-1)+" goto _"+funcionActual+"_for"+forCount+"_body\n");
-                    code.append("  goto _"+funcionActual+"_for"+forCount+"_end\n");
-                    System.out.println("_"+funcionActual+"_for"+forCount+"_update:");
-                    code.append("\n_"+funcionActual+"_for"+forCount+"_update:\n");
+                    code.append("  if t"+(tempCount-1)+" goto _"+funcionActual+"_for"+forActual+"_body\n");
+                    code.append("  goto _"+funcionActual+"_for"+forActual+"_end\n");
+                    System.out.println("_"+funcionActual+"_for"+forActual+"_update:");
+                    code.append("\n_"+funcionActual+"_for"+forActual+"_update:\n");
                     temp =  new ASTNode("");
                     temp.addChild((ASTNode)hijosEstructuraControl.get(3).getValue());
                     generateCode(temp);
-                    code.append("  goto _"+funcionActual+"_for"+forCount+"_eval\n");
+                    code.append("  goto _"+funcionActual+"_for"+forActual+"_eval\n");
 
 
-                    System.out.println("_"+funcionActual+"_for"+forCount+"_body:");
-                    code.append("\n_"+funcionActual+"_for"+forCount+"_body:\n");
+                    System.out.println("_"+funcionActual+"_for"+forActual+"_body:");
+                    code.append("\n_"+funcionActual+"_for"+forActual+"_body:\n");
                     temp =  new ASTNode("");
                     temp.addChild((ASTNode)hijosEstructuraControl.get(4).getValue());
                     generateCode(temp);
-                    code.append("  goto _"+funcionActual+"_for"+forCount+"_update\n");
+                    code.append("  goto _"+funcionActual+"_for"+forActual+"_update\n");
 
-                    System.out.println("_"+funcionActual+"_for"+forCount+"_end:");
-                    code.append("\n_"+funcionActual+"_for"+forCount+"_end:\n");
-                    forCount++;
+                    System.out.println("_"+funcionActual+"_for"+forActual+"_end:");
+                    code.append("\n_"+funcionActual+"_for"+forActual+"_end:\n");
+                    
+                    if(ciclosStack.size() > 0){
+                        ciclosStack.remove(ciclosStack.size()-1);
+                        if(ciclosStack.size() > 0)
+                            cicloActual = ciclosStack.get(ciclosStack.size()-1);
+                    }
+
 
                 }
             
                 else if(hijosEstructuraControl.get(0).getValue().equals("doWhileStm")){
-                    System.out.println("_"+funcionActual+"_doWhile"+doWhileCount+"_body:");
-                    code.append("\n_"+funcionActual+"_doWhile"+doWhileCount+"_body:\n");
+                    doWhileCount++;
+                    int doWhileActual = doWhileCount;
+                    ciclosStack.add("_"+funcionActual+"_doWhile"+doWhileActual+"_end");
+                    cicloActual = "_"+funcionActual+"_doWhile"+doWhileActual+"_end";
+                    System.out.println("_"+funcionActual+"_doWhile"+doWhileActual+"_body:");
+                    code.append("\n_"+funcionActual+"_doWhile"+doWhileActual+"_body:\n");
                     ASTNode temp =  new ASTNode("");
                     temp.addChild((ASTNode)hijosEstructuraControl.get(1).getValue());
                     generateCode(temp);
 
-                    System.out.println("_"+funcionActual+"_doWhile"+doWhileCount+"_eval:");
-                    code.append("\n_"+funcionActual+"_doWhile"+doWhileCount+"_eval:\n");
+                    System.out.println("_"+funcionActual+"_doWhile"+doWhileActual+"_eval:");
+                    code.append("\n_"+funcionActual+"_doWhile"+doWhileActual+"_eval:\n");
                     temp =  new ASTNode("");
                     temp.addChild((ASTNode)hijosEstructuraControl.get(2).getValue());
                     generateCode(temp);
-                    code.append("  if t"+(tempCount-1)+" goto _"+funcionActual+"_doWhile"+doWhileCount+"_body\n");
-                    code.append("  goto _"+funcionActual+"_doWhile"+doWhileCount+"_end\n");
+                    code.append("  if t"+(tempCount-1)+" goto _"+funcionActual+"_doWhile"+doWhileActual+"_body\n");
+                    code.append("  goto _"+funcionActual+"_doWhile"+doWhileActual+"_end\n");
 
-                    System.out.println("_"+funcionActual+"_doWhile"+doWhileCount+"_end:");
-                    code.append("\n_"+funcionActual+"_doWhile"+doWhileCount+"_end:\n");
-                    doWhileCount++;
+                    System.out.println("_"+funcionActual+"_doWhile"+doWhileActual+"_end:");
+                    code.append("\n_"+funcionActual+"_doWhile"+doWhileActual+"_end:\n");
+                
+                    if(ciclosStack.size() > 0){
+                        ciclosStack.remove(ciclosStack.size()-1);
+                        if(ciclosStack.size() > 0)
+                            cicloActual = ciclosStack.get(ciclosStack.size()-1);
+                    }
+                }
+                else if(hijosEstructuraControl.get(0).getValue().equals("whileStm")){
+                    whileCount++;
+                    int whileActual = whileCount;
+                    ciclosStack.add("_"+funcionActual+"_while"+whileActual+"_end");
+                    cicloActual = "_"+funcionActual+"_while"+whileActual+"_end";
+
+                    System.out.println("_"+funcionActual+"_while"+whileActual+"_eval:");
+                    code.append("\n_"+funcionActual+"_while"+whileActual+"_eval:\n");
+                    ASTNode temp =  new ASTNode("");
+                    temp.addChild((ASTNode)hijosEstructuraControl.get(1).getValue());
+                    generateCode(temp);
+                    code.append("  if t"+(tempCount-1)+" goto _"+funcionActual+"_while"+whileActual+"_body\n");
+                    code.append("  goto _"+funcionActual+"_while"+whileActual+"_end\n");
+
+                    System.out.println("_"+funcionActual+"_while"+whileActual+"_body:");
+                    code.append("\n_"+funcionActual+"_while"+whileActual+"_body:\n");
+                    temp =  new ASTNode("");
+                    temp.addChild((ASTNode)hijosEstructuraControl.get(2).getValue());
+                    generateCode(temp);
+                    code.append("  goto _"+funcionActual+"_while"+whileActual+"_eval\n");
+
+                    System.out.println("_"+funcionActual+"_while"+whileActual+"_end:");
+                    code.append("\n_"+funcionActual+"_while"+whileActual+"_end:\n");
+                
+                    if(ciclosStack.size() > 0){
+                        ciclosStack.remove(ciclosStack.size()-1);
+                        if(ciclosStack.size() > 0)
+                            cicloActual = ciclosStack.get(ciclosStack.size()-1);
+                    }
                 }
 
                 else if(hijosEstructuraControl.get(0).getValue().equals("ifStm")){
@@ -274,14 +330,20 @@ public class IntermediateCodeGenerator {
                     code.append("\n_"+funcionActual+"_elif"+elifActual+"_end:\n");
                     
                 }
-                else if(hijosEstructuraControl.get(0).getValue().equals("returnStm")){
-                    ASTNode temp =  new ASTNode("");
-                    temp.addChild((ASTNode)hijosEstructuraControl.get(1).getValue());
-                    generateCode(temp);
-                    code.append("  return t"+(tempCount-1)+"\n");
-                }
-                
             }
+            
+            else if(childType.equals("returnStm")){
+                generateCode(child);
+                code.append("  return t"+(tempCount-1)+"\n");
+            }
+            else if(childType.equals("value")){
+                generateCode(child);
+            }
+            else if(childType.equals("breakStm")){
+                code.append("  goto "+cicloActual+"\n");
+            }
+                
+            
             
             
         }

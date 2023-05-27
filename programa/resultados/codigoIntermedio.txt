@@ -1,0 +1,111 @@
+
+test:
+
+_test_while1_eval:
+  ts0 = a
+  ts1 = b
+  t2 = t0 > t1
+  if t2 goto _test_while1_body
+  goto _test_while1_end
+
+_test_while1_body:
+
+_test_for1_init:
+
+  dataInt i
+  t3 = 0
+  i = t3
+
+_test_for1_eval:
+  ts4 = i
+  ts5 = a
+  t6 = t4 > t5
+  if t6 goto _test_for1_body
+  goto _test_for1_end
+
+_test_for1_update:
+  t7 = ++i
+  goto _test_for1_eval
+
+_test_for1_body:
+  ts8 = a
+  t9 = 1
+  t10 = t8 - t9
+  a = t10
+
+_test_if1_eval:
+  ts11 = a
+  t12 = 0
+  t13 = t11 == t12
+  if t13 goto _test_if1_body
+  goto _test_if1_else
+
+_test_if1_body:
+  t14 = "entra al if"
+  param t14
+  call print, 1
+  goto _test_if1_end
+
+_test_if1_else:
+
+_test_elif1_eval:
+  t16 = true
+  if t16 goto _test_elif1_body
+  goto _test_elif1_else
+
+_test_elif1_body:
+  t17 = a
+  param t17
+  call print, 1
+  goto _test_for1_end
+  goto _test_elif1_end
+
+_test_elif1_else:
+
+_test_elif2_eval:
+  t19 = false
+  t20 = true
+  t21 = t19 ^ t20
+  if t21 goto _test_elif2_body
+  goto _test_elif2_else
+
+_test_elif2_body:
+  t22 = a
+  param t22
+  call lectura, 1
+  goto _test_for1_end
+  goto _test_elif2_end
+
+_test_elif2_else:
+  goto _test_elif2_end
+
+_test_elif2_end:
+  goto _test_elif1_end
+
+_test_elif1_end:
+  goto _test_if1_end
+
+_test_if1_end:
+  goto _test_for1_update
+
+_test_for1_end:
+  goto _test_while1_eval
+
+_test_while1_end:
+  ts24 = a
+  ts25 = b
+  t26 = t24 + t25
+  return t26
+
+main:
+  t27 = "hola"
+  param t27
+  call print, 1
+  t29 = 34
+  param t29
+  call print, 1
+  t31 = 6.7
+  param t31
+  call print, 1
+  t33 = 1
+  return t33
