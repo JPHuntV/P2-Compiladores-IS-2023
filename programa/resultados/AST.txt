@@ -114,7 +114,7 @@ inicio {
                       body: bloque {
                         expresion {
                           llamaFuncion {
-                            nombre: lectura
+                            nombre: read
                             argumentos {
                               IDENTIFIER: a
                             }
@@ -148,6 +148,42 @@ inicio {
     }
     declaraFuncion: main {
       bloque {
+        declaraArray: a {
+          dataType: int
+          size: 2
+          array {
+            init {
+              literal_int {
+                1
+              }
+            }
+            init {
+              literal_int {
+                2
+              }
+            }
+          }
+        }
+        declaraArray: b {
+          dataType: int
+          size: 2
+        }
+        asignacion: b {
+          init {
+            array {
+              init {
+                literal_int {
+                  5
+                }
+              }
+              init {
+                literal_int {
+                  6
+                }
+              }
+            }
+          }
+        }
         expresion {
           llamaFuncion {
             nombre: print

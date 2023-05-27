@@ -2920,7 +2920,7 @@ class CUP$parser$actions {
 		Object l = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
         ASTNode res = new ASTNode("res");
-        ASTNode lectura = new ASTNode("nombre","lectura");
+        ASTNode lectura = new ASTNode("nombre","read");
         res.addChild(lectura);
         res.addChild((ASTNode)l);
         RESULT = res;
@@ -3024,6 +3024,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        listaVariables.addParameter(new ElementoTabla(((ASTNode)a).getValue().toString(),((ASTNode)a).getChildren().get(0).getValue().toString()));
         RESULT = (ASTNode)a;
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("sentencia",27, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);

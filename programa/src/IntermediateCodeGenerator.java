@@ -124,6 +124,24 @@ public class IntermediateCodeGenerator {
                 code.append("  t"+tempCount+" = "+child.getChildren().get(0)+"\n");
                 tempCount++;
             }
+            else if(childType.equals("declaraArray")){
+                asignando = true;
+                code.append("\n  dataArray "+child.getValue()+"["+child.getChildren().get(1).getValue().toString()+"]\n");
+                if(child.getChildren().size()>2){
+                    generateCode(child.getChildren().get(2));
+                    int numElemento = child.getChildren().get(2).getChildren().size();
+                    int pos = 0;
+                    for (ASTNode elemento : child.getChildren().get(2).getChildren()) {
+                        code.append("  "+child.getValue()+"["+pos+"] = t"+(tempCount-(numElemento))+"\n");
+                        numElemento--;
+                        pos++;
+                    }
+                        
+                }
+            
+                
+            }
+
             else if(childType.equals("IDENTIFIER")){
                 System.out.println("IDENTIFIER");
                 if(child.getChildren().get(0).getValue() == null){

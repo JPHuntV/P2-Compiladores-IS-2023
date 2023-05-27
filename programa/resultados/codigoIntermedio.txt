@@ -72,7 +72,7 @@ _test_elif2_eval:
 _test_elif2_body:
   t22 = a
   param t22
-  call lectura, 1
+  call read, 1
   goto _test_for1_end
   goto _test_elif2_end
 
@@ -98,14 +98,23 @@ _test_while1_end:
   return t26
 
 main:
-  t27 = "hola"
-  param t27
-  call print, 1
-  t29 = 34
+
+  dataArray a[2]
+  t27 = 1
+  t28 = 2
+  a[0] = t27
+  a[1] = t28
+
+  dataArray b[2]
+  b = t28
+  t29 = "hola"
   param t29
   call print, 1
-  t31 = 6.7
+  t31 = 34
   param t31
   call print, 1
-  t33 = 1
-  return t33
+  t33 = 6.7
+  param t33
+  call print, 1
+  t35 = 1
+  return t35

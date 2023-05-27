@@ -1218,6 +1218,7 @@ sentencia ::=
         RESULT = (ASTNode)e;
     :} 
     | declaraArray:a DOLLAR {:
+        listaVariables.addParameter(new ElementoTabla(((ASTNode)a).getValue().toString(),((ASTNode)a).getChildren().get(0).getValue().toString()));
         RESULT = (ASTNode)a;
     :}
     | declaraVar:a DOLLAR {:
