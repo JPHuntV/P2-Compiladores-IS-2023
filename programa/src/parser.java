@@ -1308,6 +1308,7 @@ public class parser extends java_cup.runtime.lr_parser {
     }
 
     public boolean checkDeclaraArray(ASTNode node){
+
         System.out.println("check arrays");
         System.out.println(node.toString());
         if(node.getType().equals("declaraArray")){
@@ -2230,7 +2231,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        RESULT = ((ASTNode)e).getChildren().get(0);
+        RESULT = ((ASTNode)e);
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("operandoArit",13, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -3490,7 +3491,7 @@ class CUP$parser$actions {
 		String s = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
         //listaVariables.addParameter(new ElementoTabla(i,(String) t));
-        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        ASTNode declaraVar = new ASTNode("declaraArray", i);
         declaraVar.addChild( new ASTNode("dataType", t) );
         declaraVar.addChild(new ASTNode("size",s));
         RESULT = declaraVar;
@@ -3619,9 +3620,9 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-           System.out.println("tipo variable: "+t);
+            System.out.println("tipo variable: "+t);
             System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
-            if(checkDeclaraVar((String)t,(ASTNode)e)){
+            if(checkDeclaraVar(t,(ASTNode)e)){
                 listaVariables.addParameter(new ElementoTabla(i,(String) t));
             }else{
                 System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
@@ -3647,6 +3648,11 @@ class CUP$parser$actions {
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
            ((ASTNode)d).addChild( (ASTNode)e);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.println(e);
+
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+
             if(checkDeclaraArray((ASTNode)d)){
                 System.out.println("declaracion correcta");
                 RESULT = (ASTNode)d;

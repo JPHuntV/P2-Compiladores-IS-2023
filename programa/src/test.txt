@@ -1,4 +1,8 @@
 int test(int a, int b){
+	char arrays[2] = ['a']$	
+	int c[2] = [1,2]$
+	char t = 'a'$
+	arrays[2] = 'b'$
 	while(a>b){
 		for(int i=0$i>a$++i){
 			a = a-1$
@@ -20,7 +24,7 @@ int test(int a, int b){
 	}
 	return a+b$
 }
-/_
+
 float miFunc (int dif, char otra){
 	int otrasS = 1$
 	int otrasSsd = 2+(3+4)$
@@ -56,7 +60,7 @@ float miFunc (int dif, char otra){
 bool miOtraFun(){
 	return true$ @error
 }
-_/
+
 int main(){
 	int a[2] = [1,2]$
 	int b[2]$

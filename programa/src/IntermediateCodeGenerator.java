@@ -135,19 +135,24 @@ public class IntermediateCodeGenerator {
                         code.append("  "+child.getValue()+"["+pos+"] = t"+(tempCount-(numElemento))+"\n");
                         numElemento--;
                         pos++;
-                    }
-                        
-                }
-            
-                
+                    }      
+                } 
+                asignando = false;               
+            }
+            else if(childType.equals("setValorArray")){
+                asignando = true;
+                code.append("  t"+tempCount+" = "+((ASTNode)child.getChildren().get(1).getValue()).getChildren().get(0).getChildren().get(0).getType()+"\n");
+                code.append("  "+child.getValue()+"["+child.getChildren().get(0).getValue()+"] = t"+tempCount+"\n");
+                tempCount++;
+
             }
 
             else if(childType.equals("IDENTIFIER")){
                 System.out.println("IDENTIFIER");
                 if(child.getChildren().get(0).getValue() == null){
-                    code.append("  tt"+tempCount+" = "+child.getChildren().get(0).getType()+"\n");
+                    code.append("  t"+tempCount+" = "+child.getChildren().get(0).getType()+"\n");
                 }else{
-                    code.append("  ts"+tempCount+" = "+child.getChildren().get(0).getValue()+"\n");
+                    code.append("  t"+tempCount+" = "+child.getChildren().get(0).getValue()+"\n");
                 
                 }
                 tempCount++;
