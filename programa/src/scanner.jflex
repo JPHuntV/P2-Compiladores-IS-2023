@@ -130,15 +130,14 @@ char = \'[a-zA-Z]\' |\'[0-9]\'|\'{simbolo}\'
     "return"        {return symbol(RETURN); }
     "break"         {return symbol(BREAK); }
     "read"          {return symbol(LEER,yytext()); }
-    "print"      {return symbol(ESCRIBIR,yytext()); }
+    "print"         {return symbol(ESCRIBIR,yytext()); }
 
     "/_"            { yybegin(COMMENTB); } //indica que la siguiente expresión será un comentario en bloque
 
     //terminal de literales
-    {numero}        {System.out.println("found numero");
-      return symbol(LITERAL_INT, yytext()); }
+    {numero}        {return symbol(LITERAL_INT, yytext()); }
     {float}         {return symbol(LITERAL_FLOAT,yytext());  }
-    {identificador} { return symbol(IDENTIFIER, yytext()); }
+    {identificador} {return symbol(IDENTIFIER, yytext()); }
     {string}        {return symbol(LITERAL_STRING, yytext()); }
     {char}          {return symbol(LITERAL_CHAR, yytext()); }
     {Comment}           { /* ignore */ }

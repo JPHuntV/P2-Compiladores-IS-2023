@@ -80,13 +80,12 @@ public class App {
                 BufferedWriter writer2 = new BufferedWriter(new FileWriter("programa/resultados/AST.txt"));
                 writer2.write(result.value.toString());
                 writer2.close();
-                //System.out.println("Parse tree: " + result.value.toString());
+                //generar codigo intermedio
                 IntermediateCodeGenerator intermediateCodeGenerator = new IntermediateCodeGenerator();
                 String intermediateCode = intermediateCodeGenerator.generateCode((ASTNode) result.value);
                 BufferedWriter writer3 = new BufferedWriter(new FileWriter("programa/resultados/codigoIntermedio.txt"));
                 writer3.write(intermediateCode);
                 writer3.close();
-                
                 System.out.println("Codigo intermedio\n\n" + intermediateCode);
             }else{
                 System.out.println("El archivo no puede ser generado ya que se han reportado errores");

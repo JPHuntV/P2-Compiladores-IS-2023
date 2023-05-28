@@ -902,6 +902,13 @@ public class parser extends java_cup.runtime.lr_parser {
 
 //########################################################################
 
+    /*
+    *tiposCompatibles
+    *E::tipo1: tipo de dato a comparar, tipo2: tipo de dato a comparar
+    *S::valor booleano que indica si los tipos son compatibles
+    *R::ninguna
+    *O::comprobar si dos tipos de datos son compatibles
+    */
     public boolean tiposCompatibles(String tipo1, String tipo2){
         if(tipo1.equals("float") && tipo2.equals("int")){
             return true;
@@ -917,9 +924,15 @@ public class parser extends java_cup.runtime.lr_parser {
         }
     }
 
+    /*
+    *checkDeclaraVar
+    *E::tipo: tipo de dato a comparar, node: nodo que contiene el valor a comparar
+    *S::valor booleano que indica si el valor es compatible con el tipo de la variable
+    *R::ninguna
+    *O::comprobar si el valor de una variable es compatible con su tipo
+    */
     public boolean checkDeclaraVar(String tipo, ASTNode node){
         String valor = node.getChildren().get(0).getType();
-        System.out.println("testing ,"+tipo+",    "+valor);
         switch (valor) {
             case "literal_int":
                 return tipo.equals("int") || tipo.equals("float");
@@ -933,15 +946,11 @@ public class parser extends java_cup.runtime.lr_parser {
                 return tipo.equals("char");
             case "array":
                 boolean arrayValido = true;
-                System.out.println("testing array");
                 for(ASTNode child : node.getChildren().get(0).getChildren()){
-                    System.out.println(tipo);
-                    System.out.println(child.toString());
                     if(!checkDeclaraVar(tipo, child)){
-                        System.out.println("no es valido");
+                        System.out.println("Error: El arreglo contiene un valor incompatible con el tipo de dato");
                         arrayValido = false;
                     }else{
-                        System.out.println("es valido");
                         arrayValido = true;
                     }
                 }
@@ -949,8 +958,7 @@ public class parser extends java_cup.runtime.lr_parser {
 
             case "IDENTIFIER":
                 String varName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
-                String varTipo = simboloValido(varName);
-                
+                String varTipo = simboloValido(varName);    
                 return tiposCompatibles(tipo, varTipo);
             case "llamaFuncion":
                 String funName = node.getChildren().get(0).getChildren().get(0).getValue().toString();
@@ -963,15 +971,10 @@ public class parser extends java_cup.runtime.lr_parser {
                     return false;
                 }
             case "expresionBinaria":
-
                 String valida = checkExpresion(node.getChildren().get(0));
-                System.out.println("recibi "+valida+" y tipo es "+tipo);
-                System.out.println(tipo.equals(valida));
-                System.out.println(valida.equals(tipo));
                 return tiposCompatibles(tipo, valida);
             case "operadorUnario":
                 ASTNode opUnario = node.getChildren().get(0);
-                System.out.println(opUnario.toString());
                 String tipoOperando = opUnario.getChildren().get(0).getValue().toString();
                 switch(tipoOperando){
                     case "IDENTIFIER":
@@ -988,20 +991,17 @@ public class parser extends java_cup.runtime.lr_parser {
         }
     }
 
+    /*
+    *checkExpresion
+    *E::node: nodo que contiene la expresion a comparar
+    *S::tipo de dato de la expresion
+    *R::ninguna
+    *O::comprobar el tipo de dato de una expresion comparando sus operandos
+    */
     public String checkExpresion(ASTNode node){ //operandos izquierdos
-        System.out.println("+++++++++++++++++++++++++++++++");
         ArrayList<ASTNode> hijos = node.getChildren();
-        System.out.println(hijos.get(0));
-        System.out.println(hijos.get(1));
-        System.out.println(hijos.get(2));
-        System.out.println(hijos.get(3));
-
         ASTNode left = (ASTNode) hijos.get(2).getValue();
-        System.out.println(left.getType());
-
         ASTNode right = (ASTNode) hijos.get(3).getValue();
-        System.out.println(right.getType());
-
         String tipoOp = right.getType();
         switch(left.getType()){
             case "literal_int":
@@ -1071,9 +1071,7 @@ public class parser extends java_cup.runtime.lr_parser {
             case "IDENTIFIER":
                 String varName = left.getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
-                System.out.println("vartipo: "+varTipo);
                 if(checkExpresionAux(right, varTipo)){
-                        System.out.println("son iguales");
                         return varTipo;
                 }
                 else{
@@ -1081,14 +1079,10 @@ public class parser extends java_cup.runtime.lr_parser {
                 }
             case "llamaFuncion":
                 String funName = left.getChildren().get(0).getValue().toString();
-                System.out.println("llamando a funcion : "+funName);
                 ArrayList<ASTNode> funArg = new ArrayList<>();
                 if(left.getChildren().size()>1)
                     funArg = left.getChildren().get(1).getChildren();
-                System.out.println(funArg.toString());
-                System.out.println(funArg.size());
                 String tipoFuncion = funcionValida(funName, "getTipo", funArg);
-                System.out.println("Tipo recibido de funcion: "+tipoFuncion);
                 if(checkExpresionAux(right, tipoFuncion)){
                         return tipoFuncion;
                 }else{
@@ -1096,19 +1090,14 @@ public class parser extends java_cup.runtime.lr_parser {
                 }
 
             case "expresionBinaria":
-                System.out.println("me encontre una bin");
                 if(left.getChildren().get(0).getValue().toString().equals("expresionAritmetica")){
-                    System.out.println("me encontre una aritmetica");
                     String tipoExp = checkExpresion(left);
-                    System.out.println(tipoExp);
                     if(checkExpresionAux(right, tipoExp)){
                         return tipoExp;
                     }else{
                         return "invalida";
                     }
-
                 }else{
-                    System.out.println("me encontre una boolean");
                     return "bool";
                 }
             //case "operadorUnario":
@@ -1142,11 +1131,17 @@ public class parser extends java_cup.runtime.lr_parser {
             //            return "invalida";
             //    }
             default:
-                System.out.println("+++++++++++++++++++++++++++++++");
                 return "invalida";
         }
     }
 
+    /*
+    *checkExpresionAux
+    *E: ASTNode right: nodo a la derecha del operador, String tipoCheck: tipo del nodo a la izquierda del operador
+    *S: booleano que indica si la expresion es posible o no
+    *R: right debe ser un nodo valido, tipoCheck debe ser un tipo valido
+    *O: verifica si la expresion es posible o no segun los tipos de los nodos
+    */
     public boolean checkExpresionAux(ASTNode right, String tipoCheck){
         String tipoOp = right.getType();
         switch(tipoOp){
@@ -1163,17 +1158,12 @@ public class parser extends java_cup.runtime.lr_parser {
             case "IDENTIFIER":
                 String varName = right.getChildren().get(0).getValue().toString();
                 String varTipo = simboloValido(varName);
-                System.out.println("vartipo1: "+tipoCheck);
-                System.out.println("vartipo2: "+varTipo);
                 return tiposCompatibles(tipoCheck, varTipo);
             case "llamaFuncion":
                 String funName = right.getChildren().get(0).getValue().toString();
-                System.out.println("llamando a funcion : "+funName);
                 ArrayList<ASTNode> funArg = new ArrayList<>();
                 if(right.getChildren().size()>1)
                     funArg = right.getChildren().get(1).getChildren();
-                System.out.println(funArg.toString());
-                System.out.println(funArg.size());
                 if(!funcionValida(funName, tipoCheck, funArg).equals("invalida")){
                     return true;
                 }else{
@@ -1181,10 +1171,7 @@ public class parser extends java_cup.runtime.lr_parser {
                 }
 
             case "expresionBinaria":
-                System.out.println("right");
-                System.out.println(right.toString());
                 String tipoExp = checkExpresion(right);
-                System.out.println("expresion binaria derecha: "+tipoExp);
                 if(!tipoExp.equals("invalida")){
                     return true;
                 }else{
@@ -1208,14 +1195,17 @@ public class parser extends java_cup.runtime.lr_parser {
                 return false;
         }
     }
-    public String simboloValido(String varName){ 
-        System.out.println("_______simbolo valido____________");
-        System.out.println(varName);
+
+    /*
+    *simboloValido
+    *E: String varName: nombre de la variable a buscar
+    *S: String con el tipo de la variable
+    *R: varName debe ser un nombre valido, la variable debe estar declarada
+    *O: busca la variable en la lista de variables y parametros y retorna su tipo
+    */
+    public String simboloValido(String varName){
         String varTipo = listaParametros.existe(varName);
         String varTipo1 = listaVariables.existe(varName);
-        System.out.println("---------------");
-        System.out.println(varTipo);
-        System.out.println(varTipo1);
         if(varTipo != null){
             return varTipo;
         }    
@@ -1227,13 +1217,19 @@ public class parser extends java_cup.runtime.lr_parser {
         }
     }
 
+    /*
+    *funcionValida
+    *E: String funName: nombre de la funcion a buscar, String tipo: tipo de retorno de la funcion, ArrayList<ASTNode> argumentos: lista de argumentos de la funcion
+    *S: String con el tipo de retorno de la funcion
+    *R: funName debe ser un nombre valido, la funcion debe estar declarada, sino retorna invalida
+    *O: busca la funcion en la lista de funciones y verifica que los tipos de los argumentos sean compatibles con los tipos de los parametros
+    */
     public String funcionValida(String funName, String tipo, ArrayList<ASTNode> argumentos){
         for (Funcion f : functions) {
             if(tipo.equals("getTipo")){
                 tipo = f.getTipoRetorno();
             }
             if (f.getName().equals(funName) && tiposCompatibles(tipo, f.getTipoRetorno())){
-                System.out.println(funName);
                 int i = 0;
                 List<ElementoTabla> parametros = f.getParameters();
                 if(parametros.size()==argumentos.size()){//la funcion y su llamada tienen la misma cantidad de parametros
@@ -1241,14 +1237,10 @@ public class parser extends java_cup.runtime.lr_parser {
                     for(ElementoTabla e : parametros){
                         Object valorArg = argumentos.get(i).getValue();
                         String tipoArg = argumentos.get(i).getType();
-                        System.out.println(e.getType()+"===="+e.getName()+"======");
-                        System.out.println("===="+tipoArg+"======"+valorArg.toString());
                         switch(tipoArg){
                             case "IDENTIFIER":
                                 String varTipo = simboloValido(valorArg.toString());
-                                System.out.println("vartipo: "+varTipo);
                                 res = tiposCompatibles(e.getType(), varTipo);
-                                //res = varTipo.equals(e.getType()); 
                                 break;
                             case "literal_string":
                                 res = e.getType().equals("String");
@@ -1264,12 +1256,9 @@ public class parser extends java_cup.runtime.lr_parser {
                                 break;
                             case "llamaFuncion":
                                 String funNameNest = ((ASTNode)valorArg).getChildren().get(0).getValue().toString();
-                                System.out.println("llamando a funcion : "+funNameNest);
                                 ArrayList<ASTNode> funArg = new ArrayList<>();
                                 if(((ASTNode)valorArg).getChildren().size()>1)
                                     funArg = ((ASTNode)valorArg).getChildren().get(1).getChildren();
-                                System.out.println(funArg.toString());
-                                System.out.println(funArg.size());
                                 res = !funcionValida(funNameNest, e.getType(), funArg).equals("invalida");
                                 break;
                             default:
@@ -1289,39 +1278,44 @@ public class parser extends java_cup.runtime.lr_parser {
         return "invalida";
     }
 
+    /*
+    checkReturnsBloque
+    E: ASTNode bloque: bloque de codigo a revisar
+    S: booleano que indica si el bloque tiene o no un return
+    R: bloque debe ser un bloque valido
+    O: revisa si el bloque tiene un return, si lo tiene lo agrega a la lista de retornos
+        utilizado para comprobar que la funcion tenga un return
+    */
     public boolean checkReturnsBloque(ASTNode bloque){
-        System.out.println("check bloque");
         int cantReturn = 0;
         for(ASTNode sentencia : bloque.getChildren()){
-            System.out.println(sentencia.getType());
-            System.out.println("-=-=-=-=-=-=-");
             if(sentencia.getType().equals("returnStm")){
                 listaRetornos.add(sentencia);
                 cantReturn++;
             }
         }
-        System.out.println("cant returns: "+cantReturn);
         if(cantReturn <= 1){
             return true;
         }
         return false;
     }
 
+    /*
+    *checkDeclaraArray
+    *E: ASTNode node: nodo a revisar
+    *S: booleano que indica si todos los valores del array son del tipo del array
+    *R: node debe ser un nodo valido
+    *O: revisa si todos los valores del array son del tipo del array
+    */
     public boolean checkDeclaraArray(ASTNode node){
-
-        System.out.println("check arrays");
-        System.out.println(node.toString());
         if(node.getType().equals("declaraArray")){
             String tipo = node.getChildren().get(0).getValue().toString();
             String nombre = node.getValue().toString();
             int tam = Integer.parseInt(node.getChildren().get(1).getValue().toString());
             String tipoArray = listaVariables.existe(nombre);
-            System.out.println("tipo array: "+tipoArray);
             if(tipoArray == null){
                 ArrayList<ASTNode> valores = node.getChildren().get(2).getChildren();
                 for(ASTNode valor : valores){
-                   // valor = valor.getChildren().get(0);
-                    System.out.println("comparrando: "+tipo+" con "+valor);
                     if(!checkDeclaraVar(tipo, valor)){
                         System.out.println("Error: el tipo de los valores del array "+nombre+" no coinciden con el tipo del array");
                         return false;
@@ -1336,6 +1330,8 @@ public class parser extends java_cup.runtime.lr_parser {
         }
         return false;
     }
+
+
     //instancia del analizador lexico creado en jflex
     Analizador s;
     parser(Analizador s){ this.s=s; }
@@ -1404,6 +1400,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		 
+        //construccion del nodo para el arbol sintactico
         ASTNode programa = new ASTNode("programa");
         programa.addChild((ASTNode)e);
         RESULT = programa;
@@ -1423,6 +1420,7 @@ class CUP$parser$actions {
 		int mright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object m = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ((ASTNode)f).setType("programa");
         ((ASTNode)f).addChild((ASTNode)m);
         RESULT = f;
@@ -1441,7 +1439,8 @@ class CUP$parser$actions {
 		int fleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int fright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object f = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 
+		
+        //construccion del nodo para el arbol sintactico 
         ASTNode programa = new ASTNode("programa");
         programa.addChild((ASTNode)m);
         ASTNode bNode = (ASTNode)f;
@@ -1467,7 +1466,8 @@ class CUP$parser$actions {
 		int eleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 
+		
+        //construccion del nodo para el arbol sintactico 
         ASTNode programa = new ASTNode("programa");
         ASTNode bNode = (ASTNode)f;
         for(ASTNode child : bNode.getChildren()){
@@ -1497,7 +1497,8 @@ class CUP$parser$actions {
 		int dleft = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).left;
 		int dright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
-		 
+		
+        //construccion del nodo para el arbol sintactico 
         boolean valida = true;
         Boolean existe = false;
         for (Funcion f : functions) {
@@ -1568,6 +1569,7 @@ class CUP$parser$actions {
 		int dright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("declaraFuncion");
         ASTNode bNode = (ASTNode)f;
         for(ASTNode child : bNode.getChildren()){
@@ -1588,6 +1590,7 @@ class CUP$parser$actions {
 		int dright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("declaraFuncion");
         res.addChild((ASTNode)d);
         RESULT = res;
@@ -1606,6 +1609,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("init");
         res.addChild((ASTNode)e);
         RESULT = res;
@@ -1622,6 +1626,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("init");
         res.addChild((ASTNode)e);
         RESULT = res;
@@ -1785,7 +1790,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("operador unario");
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionUnaria = new ASTNode("tipo","expresionNumerica");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
@@ -1809,7 +1814,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("operador unario");
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
@@ -1833,7 +1838,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("operador unario");
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
@@ -1857,7 +1862,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("operador unario");
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionUnaria = new ASTNode("tipo","IDENTIFIER");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("res");
@@ -1934,6 +1939,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionBinaria = new ASTNode("tipo","expresionAritmetica");
         ASTNode operador = new ASTNode("operador",op);
         ASTNode res = new ASTNode("expresionBinaria");
@@ -1961,6 +1967,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+    //construccion del nodo para el arbol sintactico
     ASTNode expresionBinaria = new ASTNode("tipo","expresionRelacional");
     ASTNode res = new ASTNode("expresionBinaria");
     res.addChild((ASTNode)expresionBinaria);
@@ -1981,8 +1988,7 @@ class CUP$parser$actions {
 		int tright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object t = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("terminoLogico");
-        System.out.println(t);
+        //construccion del nodo para el arbol sintactico
         ASTNode terminoLogico = new ASTNode("terminoLogico");
         terminoLogico.addChild((ASTNode)t);
         RESULT = (ASTNode)t;
@@ -2005,6 +2011,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionBinaria = new ASTNode("expresionBinaria");
         expresionBinaria.addChild(new ASTNode("tipo","expresionLogica"));
         expresionBinaria.addChild(new ASTNode("operador",op));
@@ -2024,6 +2031,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String b = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_bool = new ASTNode("literal_bool");
         literal_bool.addChild(new ASTNode(b));
         RESULT = (literal_bool);
@@ -2040,8 +2048,7 @@ class CUP$parser$actions {
 		int rright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object r = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("expresionBinaria");
-        System.out.println(r);
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionRelacional = new ASTNode("expresionBinaria");
         expresionRelacional.addChild((ASTNode)r);
         RESULT = (ASTNode)r;
@@ -2061,6 +2068,7 @@ class CUP$parser$actions {
 		int tright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object t = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode notOp = new ASTNode("notOp");
         notOp.addChild((ASTNode)t);
         ASTNode res =  new ASTNode("res");
@@ -2079,6 +2087,7 @@ class CUP$parser$actions {
 		int rright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object r = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode expresionLogica = new ASTNode("expresionBinaria");
         expresionLogica.addChild((ASTNode)r);
         RESULT = (ASTNode)r;
@@ -2095,8 +2104,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("IDENTIFIER");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode IDENTIFIER = new ASTNode("IDENTIFIER");
         IDENTIFIER.addChild(new ASTNode("valor",e));
         RESULT = IDENTIFIER;
@@ -2113,8 +2121,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_string");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_string = new ASTNode("literal_string");
         literal_string.addChild(new ASTNode(e));
         RESULT = literal_string;
@@ -2131,8 +2138,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_int");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_int = new ASTNode("literal_int");
         literal_int.addChild(new ASTNode(e));
         RESULT = literal_int;
@@ -2149,8 +2155,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_float");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_float = new ASTNode("literal_float");
         literal_float.addChild(new ASTNode(e));
         RESULT = literal_float;
@@ -2167,8 +2172,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_char");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_char = new ASTNode("literal_char");
         literal_char.addChild(new ASTNode(e));
         RESULT = literal_char;
@@ -2185,8 +2189,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("llamaFuncion");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ((ASTNode)e).setType("llamaFuncion");
         RESULT = ((ASTNode)e);
     
@@ -2202,6 +2205,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ((ASTNode)e).setType("operadorUnario");
         RESULT = ((ASTNode)e);
     
@@ -2271,8 +2275,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String b = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_bool");
-        System.out.println(b);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_bool = new ASTNode("literal_bool");
         literal_bool.addChild(new ASTNode(b));
         RESULT = (literal_bool);
@@ -2361,6 +2364,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("array");
         res.addChild((ASTNode)a);
         RESULT = res;
@@ -2380,7 +2384,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("array");
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("array");
         ASTNode bNode = (ASTNode)a;
         for(ASTNode child : bNode.getChildren()){
@@ -2404,6 +2408,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         boolean valida = true;
         res.addChild(new ASTNode("tipo","ifStm"));
@@ -2411,16 +2416,10 @@ class CUP$parser$actions {
         res.addChild(new ASTNode("body",(ASTNode)b));
         //checkReturnsBloque((ASTNode)b);
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
-            if(!checkExpresion((ASTNode)exp).equals("invalida")){
-                System.out.println("expresion valida");
-            }else{
-                System.out.println("expresion no valida");
+            if(checkExpresion((ASTNode)exp).equals("invalida")){
                 valida = false;
             }
-        }else if(((ASTNode)exp).getType().equals("literal_bool")){
-            System.out.println("expresion valida");
         }
-
         if(!checkReturnsBloque((ASTNode)b)){
             valida = false;
         }
@@ -2441,6 +2440,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","elifStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
@@ -2448,14 +2448,11 @@ class CUP$parser$actions {
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
             if(!checkExpresion((ASTNode)exp).equals("invalida")){
-                System.out.println("expresion valida");
                 valida = true;
             }else{
-                System.out.println("expresion no valida");
                 valida = false;
             }
         }else if(((ASTNode)exp).getType().equals("literal_bool")){
-            System.out.println("expresion valida");
             valida = true;
         }
         if(!checkReturnsBloque((ASTNode)b)){
@@ -2481,6 +2478,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","elifStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
@@ -2490,14 +2488,11 @@ class CUP$parser$actions {
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
             if(!checkExpresion((ASTNode)exp).equals("invalida")){
-                System.out.println("expresion valida");
                 valida = true;
             }else{
-                System.out.println("expresion no valida");
                 valida = false;
             }
         }else if(((ASTNode)exp).getType().equals("literal_bool")){
-            System.out.println("expresion valida");
             valida = true;
         }
         if(!checkReturnsBloque((ASTNode)b)){
@@ -2517,6 +2512,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","elseStm"));
         res.addChild(new ASTNode("body",(ASTNode)b));
@@ -2538,6 +2534,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","whileStm"));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
@@ -2545,14 +2542,11 @@ class CUP$parser$actions {
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
             if(!checkExpresion((ASTNode)exp).equals("invalida")){
-                System.out.println("expresion valida");
                 valida = true;
             }else{
-                System.out.println("expresion no valida");
                 valida = false;
             }
         }else if(((ASTNode)exp).getType().equals("literal_bool")){
-            System.out.println("expresion valida");
             valida = true;
         }
         if(!checkReturnsBloque((ASTNode)b)){
@@ -2575,23 +2569,19 @@ class CUP$parser$actions {
 		int expright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		Object exp = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","doWhileStm"));
         res.addChild(new ASTNode("body",(ASTNode)b));
         res.addChild(new ASTNode("eval", (ASTNode)exp));
-            System.out.println("'''''''''''''"+((ASTNode)exp).getType());
-            System.out.println("'''''''''''''");
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
             if(!checkExpresion((ASTNode)exp).equals("invalida")){
-                System.out.println("expresion valida");
                 valida = true;
             }else{
-                System.out.println("expresion no valida");
                 valida = false;
             }
         }else if(((ASTNode)exp).getType().equals("literal_bool")){
-            System.out.println("expresion valida");
             valida = true;
         }else{
             valida = false;
@@ -2622,6 +2612,8 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        
+        //construccion del nodo para el arbol sintactico
         ASTNode res =  new ASTNode("estructuraControl");
         res.addChild(new ASTNode("tipo","forStm"));
         res.addChild(new ASTNode("init", (ASTNode)d));
@@ -2631,14 +2623,11 @@ class CUP$parser$actions {
         boolean valida = true;
         if(((ASTNode)exp).getType().equals("expresionBinaria")){
             if(!checkExpresion((ASTNode)exp).equals("invalida")){
-                System.out.println("expresion valida");
                 valida = true;
             }else{
-                System.out.println("expresion no valida");
                 valida = false;
             }
         }else if(((ASTNode)exp).getType().equals("literal_bool")){
-            System.out.println("expresion valida");
             valida = true;
         }else{
             valida = false;
@@ -2804,7 +2793,9 @@ class CUP$parser$actions {
 		int eleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		RESULT = new ASTNode("IDENTIFIER",e);
+		
+        RESULT = new ASTNode("IDENTIFIER",e);
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("argumento",42, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -2843,6 +2834,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("argumentos");
         res.addChild((ASTNode)a);
         RESULT = res;
@@ -2862,6 +2854,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("argumentos");
         ASTNode bNode = (ASTNode)a;
         for(ASTNode child : bNode.getChildren()){
@@ -2882,6 +2875,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-2)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("res");
         ASTNode llamadaFuncion = new ASTNode("nombre", e);
         res.addChild(llamadaFuncion);
@@ -2902,6 +2896,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("res");
         ASTNode llamadaFuncion = new ASTNode("nombre", e);
         res.addChild(llamadaFuncion);
@@ -2920,6 +2915,7 @@ class CUP$parser$actions {
 		int lright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object l = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("res");
         ASTNode lectura = new ASTNode("nombre","read");
         res.addChild(lectura);
@@ -2938,6 +2934,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("res");
         ASTNode escritura = new ASTNode("nombre","print");
         res.addChild(escritura);
@@ -2959,6 +2956,7 @@ class CUP$parser$actions {
 		int exright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object ex = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         if(!checkDeclaraVar(simboloValido((String)e), (ASTNode)ex)){
             System.out.println("Error: variable no declarada");
             System.exit(0);
@@ -2994,6 +2992,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode estructuraControl = new ASTNode("estructuraControl");
         estructuraControl.addChild((ASTNode)a);
         RESULT = (ASTNode)a;
@@ -3010,6 +3009,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ((ASTNode)e).setType("expresion");
         RESULT = (ASTNode)e;
     
@@ -3025,6 +3025,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         listaVariables.addParameter(new ElementoTabla(((ASTNode)a).getValue().toString(),((ASTNode)a).getChildren().get(0).getValue().toString()));
         RESULT = (ASTNode)a;
     
@@ -3040,6 +3041,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode declaraVar = new ASTNode("declaraVar");
         declaraVar.addChild((ASTNode)a);
         RESULT = a;
@@ -3056,6 +3058,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode declaraVar = new ASTNode("declaraVar");
         declaraVar.addChild((ASTNode)a);
         RESULT = a;
@@ -3072,6 +3075,7 @@ class CUP$parser$actions {
 		int aright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object a = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode returnStm = new ASTNode("returnStm");
         returnStm.addChild((ASTNode)a);
         RESULT = returnStm;
@@ -3085,6 +3089,7 @@ class CUP$parser$actions {
             {
               Object RESULT =null;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode breakStm = new ASTNode("breakStm");
         RESULT = breakStm;
     
@@ -3138,6 +3143,7 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object s = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("bloque");
         res.addChild((ASTNode)s);
         RESULT = res;
@@ -3157,7 +3163,7 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object s = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("bloque");
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("bloque");
         ASTNode bNode = (ASTNode)b;
         for(ASTNode child : bNode.getChildren()){
@@ -3180,7 +3186,8 @@ class CUP$parser$actions {
 		int ileft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int iright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String i = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 
+		
+        //construccion del nodo para el arbol sintactico 
         listaParametros.addParameter(new ElementoTabla(i,(String) t));
         ASTNode res = new ASTNode("parametros");
         res.addChild(new ASTNode((String)t,(String)i));
@@ -3204,6 +3211,7 @@ class CUP$parser$actions {
 		int iright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String i = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         listaParametros.addParameter(new ElementoTabla(i,(String) t));
         ASTNode res = new ASTNode("parametros");
         ASTNode bNode = (ASTNode)p;
@@ -3234,10 +3242,8 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         boolean valida = true;
-        System.out.println("=========================================");
-        System.out.println(b.toString());
-        System.out.println("=========================================");
         Boolean existe = false;
         for (Funcion f : functions) {
             if (f.getName().equals(e) && f.getTipoRetorno().equals((String) t)) {
@@ -3278,12 +3284,7 @@ class CUP$parser$actions {
         }
         for (ASTNode ret : listaRetornos) {
             ASTNode nodoRet = ret.getChildren().get(0);
-            System.out.println("----retorno");
-            System.out.println("---===="+nodoRet);
-            System.out.println("---===="+(String)t);
-
             boolean validReturn = checkDeclaraVar((String)t, nodoRet);
-            System.out.println("---====######"+validReturn);
             if(!validReturn){
                 valida =false;
                 System.out.println("Error: El tipo de retorno de "+e+" no coincide con el valor retornado ");
@@ -3316,6 +3317,7 @@ class CUP$parser$actions {
 		int bright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object b = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         boolean valida = true;
         Boolean existe = false;
         for (Funcion f : functions) {
@@ -3337,7 +3339,7 @@ class CUP$parser$actions {
             }
             for (ElementoTabla par : listaVariables.getParams()) {
                 if (symbolTable.containsSymbol( par.getName())) {
-                    System.out.println("Symbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
+                    System.out.println("Simbolo " +  par.getName() + " ya ha sido declarado en esta funcion");
                     errores = true;
                     valida = false;
                 }else{
@@ -3357,12 +3359,7 @@ class CUP$parser$actions {
         }
         for (ASTNode ret : listaRetornos) {
             ASTNode nodoRet = ret.getChildren().get(0);
-            System.out.println("----retorno");
-            System.out.println("---===="+nodoRet);
-            System.out.println("---===="+(String)t);
-
-            boolean validReturn = checkDeclaraVar((String)t, nodoRet);
-            System.out.println("---====######"+validReturn);
+            boolean validReturn = checkDeclaraVar((String)t, nodoRet); 
             if(!validReturn){
                 valida =false;
                 System.out.println("Error: El tipo de retorno de "+e+" no coincide con el valor retornado ");
@@ -3466,6 +3463,7 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		String s = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         //listaVariables.addParameter(new ElementoTabla(i,(String) t));
         ASTNode declaraVar = new ASTNode("declaraArray", i);
         declaraVar.addChild( new ASTNode("dataType", t) );
@@ -3490,6 +3488,7 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		String s = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
+        //construccion del nodo para el arbol sintactico
         //listaVariables.addParameter(new ElementoTabla(i,(String) t));
         ASTNode declaraVar = new ASTNode("declaraArray", i);
         declaraVar.addChild( new ASTNode("dataType", t) );
@@ -3525,11 +3524,12 @@ class CUP$parser$actions {
 		int iright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String i = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            ASTNode declaraVar = new ASTNode("declaraVar", i);
-            declaraVar.addChild( new ASTNode("dataType", t) );
-            RESULT = declaraVar;
-        
+        //construccion del nodo para el arbol sintactico
+        listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        declaraVar.addChild( new ASTNode("dataType", t) );
+        RESULT = declaraVar;
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVarNoAsig",35, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3545,11 +3545,12 @@ class CUP$parser$actions {
 		int iright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String i = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            ASTNode declaraVar = new ASTNode("declaraVar", i);
-            declaraVar.addChild( new ASTNode("dataType", t) );
-            RESULT = declaraVar;
-        
+        //construccion del nodo para el arbol sintactico
+        listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        declaraVar.addChild( new ASTNode("dataType", t) );
+        RESULT = declaraVar;
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVarNoAsig",35, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3565,11 +3566,12 @@ class CUP$parser$actions {
 		int iright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String i = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-            listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            ASTNode declaraVar = new ASTNode("declaraVar", i);
-            declaraVar.addChild( new ASTNode("dataType", t) );
-            RESULT = declaraVar;
-        
+        //construccion del nodo para el arbol sintactico
+        listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        declaraVar.addChild( new ASTNode("dataType", t) );
+        RESULT = declaraVar;
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVarNoAsig",35, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3588,20 +3590,18 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
+        if(checkDeclaraVar(t,(ASTNode)e)){
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        }else{
+            System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
+        }
+        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        declaraVar.addChild( new ASTNode("dataType", t) );
+        declaraVar.addChild( (ASTNode)e);
+        RESULT = declaraVar;
 
-            System.out.println("tipo variable: "+t);
-            System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
-            if(checkDeclaraVar(t,(ASTNode)e)){
-                listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            }else{
-                System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
-            }
-           ASTNode declaraVar = new ASTNode("declaraVar", i);
-           declaraVar.addChild( new ASTNode("dataType", t) );
-           declaraVar.addChild( (ASTNode)e);
-           RESULT = declaraVar;
-
-       
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",34, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3620,18 +3620,17 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-            System.out.println("tipo variable: "+t);
-            System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
-            if(checkDeclaraVar(t,(ASTNode)e)){
-                listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            }else{
-                System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
-            }
-           ASTNode declaraVar = new ASTNode("declaraVar", i);
-           declaraVar.addChild( new ASTNode("dataType", t) );
-           declaraVar.addChild( (ASTNode)e);
-           RESULT = declaraVar;
-       
+        //construccion del nodo para el arbol sintactico
+        if(checkDeclaraVar(t,(ASTNode)e)){
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        }else{
+            System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
+        }
+        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        declaraVar.addChild( new ASTNode("dataType", t) );
+        declaraVar.addChild( (ASTNode)e);
+        RESULT = declaraVar;
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",34, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3647,17 +3646,12 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
-           ((ASTNode)d).addChild( (ASTNode)e);
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            System.out.println(e);
-
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-
-            if(checkDeclaraArray((ASTNode)d)){
-                System.out.println("declaracion correcta");
-                RESULT = (ASTNode)d;
-            }
-       
+        //construccion del nodo para el arbol sintactico
+        ((ASTNode)d).addChild( (ASTNode)e);
+        if(checkDeclaraArray((ASTNode)d)){
+            RESULT = (ASTNode)d;
+        }
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",34, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3676,19 +3670,17 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-           System.out.println("tipo variable: "+t);
-            System.out.println("tipo valor: "+((ASTNode)e).getChildren().get(0).getType());
-            if(checkDeclaraVar((String)t,(ASTNode)e)){
-                listaVariables.addParameter(new ElementoTabla(i,(String) t));
-            }else{
-                System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
-            }
-           ASTNode declaraVar = new ASTNode("declaraVar", i);
-           declaraVar.addChild( new ASTNode("dataType", t) );
-           declaraVar.addChild( (ASTNode)e);
-           RESULT = declaraVar;
-
-       
+        //construccion del nodo para el arbol sintactico
+        if(checkDeclaraVar((String)t,(ASTNode)e)){
+            listaVariables.addParameter(new ElementoTabla(i,(String) t));
+        }else{
+            System.out.println("Error al declarar variable "+i+": El tipo de la variable ("+t+") no coincide con el tipo del valor asignado o este no ha sido declarado");
+        }
+        ASTNode declaraVar = new ASTNode("declaraVar", i);
+        declaraVar.addChild( new ASTNode("dataType", t) );
+        declaraVar.addChild( (ASTNode)e);
+        RESULT = declaraVar;
+    
               CUP$parser$result = parser.getSymbolFactory().newSymbol("declaraVar",34, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -3704,6 +3696,7 @@ class CUP$parser$actions {
 		int dright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode res = new ASTNode("res");
         ASTNode getValorArray = new ASTNode("getValorArray",e);
         getValorArray.addChild(new ASTNode("posicion",d));
@@ -3725,6 +3718,7 @@ class CUP$parser$actions {
 		int exright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object ex = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
+        //construccion del nodo para el arbol sintactico
         ASTNode setValorArray = ((ASTNode)e).getChildren().get(0);
         setValorArray.setType("setValorArray");
         setValorArray.addChild(new ASTNode("value", (ASTNode)ex));
@@ -3756,10 +3750,8 @@ class CUP$parser$actions {
 		int nright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		String n = (String)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
-        System.out.println("====================tipo id==================");
+        //construccion del nodo para el arbol sintactico
         String tipoId = simboloValido(n);
-        System.out.println(tipoId);
-        System.out.println("======================================");
         if(tipoId.equals("int") || tipoId.equals("float")){
             ASTNode argumentos = new ASTNode("argumentos");
             ASTNode identifier = new ASTNode("IDENTIFIER",n);
@@ -3767,7 +3759,7 @@ class CUP$parser$actions {
             argumentos.addChild(identifier);
             RESULT = argumentos;
         }else{
-            System.out.println(n+" debe ser de tipo int o float pero es tipo "+ tipoId);
+            System.out.println("Error: print +"+n+" debe ser de tipo int o float pero es tipo "+ tipoId);
         }
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("lectura",38, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
@@ -3782,8 +3774,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_int");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_int = new ASTNode("literal_int");
         literal_int.addChild(new ASTNode(e));
         RESULT = literal_int;
@@ -3800,8 +3791,7 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        System.out.println("literal_float");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode literal_int = new ASTNode("literal_float");
         literal_int.addChild(new ASTNode(e));
         RESULT = literal_int;
@@ -3818,10 +3808,8 @@ class CUP$parser$actions {
 		int eright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)).right;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
-        System.out.println("=================================###");
-        System.out.println(e);
+        //construccion del nodo para el arbol sintactico
         ASTNode nodoValor = ((ASTNode)e).getChildren().get(0);
-        System.out.println(nodoValor.getType());
         String tipoNodo = nodoValor.getType();
         String valor;
         if(tipoNodo.equals("IDENTIFIER")){
@@ -3829,23 +3817,17 @@ class CUP$parser$actions {
         }else{
             valor = nodoValor.getChildren().get(0).getType();
         }
-        System.out.println("++++"+tipoNodo);
-        System.out.println("++++---"+valor);
         ASTNode argumento = new ASTNode("argumentos");
         argumento.addChild(new ASTNode(tipoNodo,valor));
         if(tipoNodo.equals("literal_int") || tipoNodo.equals("literal_float") || tipoNodo.equals("literal_string")){
             RESULT = argumento;
         }else if(tipoNodo.equals("IDENTIFIER")){
             String tipoId = simboloValido(nodoValor.getChildren().get(0).getValue().toString());    
-            System.out.println(tipoId);
-            System.out.println("==========================++++============");
             if(tipoId.equals("int") || tipoId.equals("float") || tipoId.equals("String")){
                 RESULT = argumento;
-            }else{
-                System.out.println("=================================###"+tipoId);
             }
         }else{
-            System.out.println("escribir solo es compatible con int, float, y string");
+            System.out.println("Error: print solo es compatible con int, float, y string");
         }
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("escritura",40, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-3)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);

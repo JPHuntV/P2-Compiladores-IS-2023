@@ -36,7 +36,7 @@ public class IntermediateCodeGenerator {
         ArrayList<ASTNode> children = root.getChildren();
         //System.out.println(children.toString());
         for (ASTNode child : children) {
-            System.out.println("===== #="+child.getType());
+            System.out.println("=====#"+child.getType());
             String childType = child.getType();
             if(childType.equals("programa")){
                 generateCode(child);
@@ -61,7 +61,6 @@ public class IntermediateCodeGenerator {
             }
             else if(childType.equals("llamaFuncion")){
                 System.out.println("llamaFuncion");
-                System.out.println(child.toString());
                 int cantParams = 0;
                 if(child.getChildren().size()>1){
                     ArrayList<ASTNode> params = child.getChildren().get(1).getChildren();
@@ -159,7 +158,6 @@ public class IntermediateCodeGenerator {
             }
             else if(childType.equals("expresionBinaria")){
                 System.out.println("expresionBinaria");
-                System.out.println("]]] "+child.getChildren().get(2).getValue());
                 ASTNode temp =  new ASTNode("");
 
                 temp.addChild((ASTNode)child.getChildren().get(2).getValue());
@@ -172,7 +170,6 @@ public class IntermediateCodeGenerator {
                 int j = tempCount;
                 code.append("  t"+tempCount+" = t"+(i)+" "+child.getChildren().get(1).getValue()+" t"+(tempCount-1)+"\n");
                 tempCount++;
-                System.out.println("====================================");
             }
             else if(childType.equals("operadorUnario")){
                 ArrayList<ASTNode> hijosOpUnario = child.getChildren();
@@ -304,8 +301,6 @@ public class IntermediateCodeGenerator {
 
                     System.out.println("_"+funcionActual+"_if"+ifActual+"_body:");
                     code.append("\n_"+funcionActual+"_if"+ifActual+"_body:\n");
-                    //temp =  new ASTNode("");
-                    //temp.addChild((ASTNode)hijosEstructuraControl.get(2).getValue());
                     generateCode((ASTNode)hijosEstructuraControl.get(2).getValue());
                     code.append("  goto _"+funcionActual+"_if"+ifActual+"_end\n");
 
@@ -326,7 +321,6 @@ public class IntermediateCodeGenerator {
 
                     }
                     code.append("  goto _"+funcionActual+"_if"+ifActual+"_end\n");
-
                     System.out.println("_"+funcionActual+"_if"+ifActual+"_end:");
                     code.append("\n_"+funcionActual+"_if"+ifActual+"_end:\n");
                     
@@ -344,8 +338,6 @@ public class IntermediateCodeGenerator {
 
                     System.out.println("_"+funcionActual+"_elif"+elifActual+"_body:");
                     code.append("\n_"+funcionActual+"_elif"+elifActual+"_body:\n");
-                    //temp =  new ASTNode("");
-                    //temp.addChild((ASTNode)hijosEstructuraControl.get(2).getValue());
                     generateCode((ASTNode)hijosEstructuraControl.get(2).getValue());
                     code.append("  goto _"+funcionActual+"_elif"+elifActual+"_end\n");
 
@@ -370,7 +362,6 @@ public class IntermediateCodeGenerator {
                     code.append("\n_"+funcionActual+"_else"+elseActual+"_body:\n");
                     generateCode((ASTNode)hijosEstructuraControl.get(1).getValue());
                     code.append("  goto _"+funcionActual+"_else"+elseActual+"_end\n");
-
 
                     System.out.println("_"+funcionActual+"_else"+elseActual+"_end:");
                     code.append("\n_"+funcionActual+"_else"+elseActual+"_end:\n");
